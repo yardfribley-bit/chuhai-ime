@@ -13,3 +13,4 @@ qingjian-dictionary.workspace = true
 qingjian-learning.workspace = true
 serde_json.workspace = true
 jiff.workspace = true
+qingjian-translate = { version = "0.1.1", path = "../../../crates/qingjian-translate" }

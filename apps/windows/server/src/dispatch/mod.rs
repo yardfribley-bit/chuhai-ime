@@ -127,6 +127,7 @@ pub struct Router {
 
 impl Router {
     pub fn new(engine: Engine, config: RouterConfig) -> Self {
+        let english = config.input_mode == Some(qingjian_platform::InputMode::English);
         Self {
             engine,
             config: RouterConfig {
@@ -150,7 +151,7 @@ impl Router {
             reload: None,
             candidates: Box::new(NoopSink),
             status: Box::new(NoopStatusSink),
-            english: false,
+            english,
             ime_active: false,
             last_rect: None,
             last_shown: None,
@@ -206,6 +207,20 @@ impl Router {
     }
 
     pub fn flush_learning(&mut self) {
+        let encounters = self.engine.take_encountered_terms();
+        if !encounters.is_empty()
+            && let Some(dir) = qingjian_platform::dirs::user_dir()
+        {
+            let result = (|| -> Result<(), std::io::Error> {
+                let mut book =
+                    qingjian_learning::TranslationBook::open(dir.join("translation-words.json"))?;
+                book.record_encounters(&encounters);
+                book.save()
+            })();
+            if let Err(error) = result {
+                tracing::warn!(%error, "候选词条保存失败");
+            }
+        }
         self.engine.flush_learning();
         self.last_flush = Instant::now();
     }

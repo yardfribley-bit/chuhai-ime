@@ -3,13 +3,16 @@ use objc2::{MainThreadMarker, sel};
 use objc2_app_kit::{NSControlStateValueOff, NSControlStateValueOn, NSMenu, NSMenuItem};
 use objc2_foundation::NSString;
 use qingjian_core::FuzzyRules;
-use qingjian_platform::Config;
+use qingjian_platform::{Config, InputMode};
 
 use super::MenuAction;
 use super::target::MenuTarget;
 
 /// 菜单本体与需要按状态刷新的那几项。
 pub struct InputMenu {
+    /// 三个输入预设的勾选项。
+    modes: Vec<Retained<NSMenuItem>>,
+
     /// 菜单。挂到状态项和 IMK `menu` 回调的是同一个对象。
     menu: Retained<NSMenu>,
 
@@ -35,6 +38,21 @@ impl InputMenu {
         let menu = NSMenu::new(mtm);
         // 不让 AppKit 按响应链判断可用性：它找不到 target 就会把整份菜单灰掉
         menu.setAutoenablesItems(false);
+
+        let modes = InputMode::ALL
+            .into_iter()
+            .map(|mode| {
+                let item = action_item(
+                    mtm,
+                    mode.label(),
+                    Some(MenuAction::SelectInputMode(mode)),
+                    &target,
+                );
+                menu.addItem(&item);
+                item
+            })
+            .collect();
+        menu.addItem(&NSMenuItem::separatorItem(mtm));
 
         let cloud = action_item(mtm, "云联想", Some(MenuAction::ToggleCloud), &target);
         menu.addItem(&cloud);
@@ -99,6 +117,7 @@ impl InputMenu {
         menu.addItem(&about);
 
         Self {
+            modes,
             menu,
             cloud,
             fuzzy,
@@ -128,6 +147,9 @@ impl InputMenu {
     /// 按当前配置刷新勾选状态。`cloud_active` 是 Engine 里真接上了 Predictor：
     /// 配置开了但没接上（多半是没密钥）时不打勾，标题说明原因，不能显示开了实际没开。
     pub fn sync(&self, config: &Config, cloud_active: bool, error: Option<&str>) {
+        for (item, mode) in self.modes.iter().zip(InputMode::ALL) {
+            set_checked(item, config.general.current_input_mode() == mode);
+        }
         let title = match (config.predict.enabled, cloud_active) {
             (true, false) => "云联想（启用失败，见日志）",
             _ => "云联想",

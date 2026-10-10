@@ -1,5 +1,6 @@
 use objc2_foundation::NSInteger;
 use qingjian_core::FuzzyRules;
+use qingjian_platform::InputMode;
 
 /// 模糊音条目的 tag 起点，后面加规则在 [`FuzzyRules::NAMES`] 里的下标。
 const FUZZY_TAG_BASE: NSInteger = 100;
@@ -7,6 +8,9 @@ const FUZZY_TAG_BASE: NSInteger = 100;
 /// 菜单能触发的动作。编码进 NSMenuItem 的 tag，派发时再解出来。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MenuAction {
+    /// 直接选择五笔、拼音或英文。
+    SelectInputMode(InputMode),
+
     /// 开关云联想（写 `[predict] enabled`）。
     ToggleCloud,
 
@@ -32,6 +36,9 @@ pub enum MenuAction {
 impl MenuAction {
     pub fn tag(self) -> NSInteger {
         match self {
+            Self::SelectInputMode(InputMode::Wubi) => 7,
+            Self::SelectInputMode(InputMode::Pinyin) => 8,
+            Self::SelectInputMode(InputMode::English) => 9,
             Self::ToggleCloud => 1,
             Self::OpenPreferences => 2,
             Self::OpenLogs => 3,
@@ -44,6 +51,9 @@ impl MenuAction {
 
     pub fn from_tag(tag: NSInteger) -> Option<Self> {
         Some(match tag {
+            7 => Self::SelectInputMode(InputMode::Wubi),
+            8 => Self::SelectInputMode(InputMode::Pinyin),
+            9 => Self::SelectInputMode(InputMode::English),
             1 => Self::ToggleCloud,
             2 => Self::OpenPreferences,
             3 => Self::OpenLogs,
@@ -65,6 +75,9 @@ mod tests {
     #[test]
     fn tags_round_trip() {
         let all = [
+            MenuAction::SelectInputMode(InputMode::Wubi),
+            MenuAction::SelectInputMode(InputMode::Pinyin),
+            MenuAction::SelectInputMode(InputMode::English),
             MenuAction::ToggleCloud,
             MenuAction::OpenPreferences,
             MenuAction::OpenUsageGuide,

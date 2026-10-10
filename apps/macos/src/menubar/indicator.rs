@@ -15,6 +15,7 @@ use objc2_app_kit::{NSMenu, NSStatusBar, NSStatusItem, NSVariableStatusItemLengt
 use objc2_foundation::{NSObject, NSObjectProtocol, NSString, NSTimer, ns_string};
 
 use crate::imk::modifiers;
+use qingjian_platform::InputMode;
 
 /// 轮询 Caps Lock 状态的间隔。
 const POLL_INTERVAL: f64 = 0.25;
@@ -23,6 +24,14 @@ const POLL_INTERVAL: f64 = 0.25;
 const COLLAPSE_DELAY: f64 = 0.5;
 
 pub struct ModeIndicator {
+    /// 显式预设与上次中文方案。
+    mode: Option<InputMode>,
+
+    chinese_mode: InputMode,
+
+    /// 上次观察到的灯状态，每次变化只处理一次。
+    caps: bool,
+
     /// 菜单栏状态项。
     item: Retained<NSStatusItem>,
 
@@ -50,6 +59,9 @@ impl ModeIndicator {
         item.setAutosaveName(Some(ns_string!("QingjianModeIndicator")));
         item.setVisible(true);
         Self {
+            mode: None,
+            chinese_mode: InputMode::Pinyin,
+            caps: modifiers::caps_lock_on(),
             item,
             timer: None,
             collapse_timer: None,
@@ -132,17 +144,37 @@ impl ModeIndicator {
     }
 
     /// 按当前 Caps Lock 状态刷新标题；收起时不动。
+    pub fn caps_changed(&mut self) -> bool {
+        let caps = modifiers::caps_lock_on();
+        std::mem::replace(&mut self.caps, caps) != caps
+    }
+
+    pub fn set_input_mode(&mut self, mode: Option<InputMode>, chinese: InputMode) {
+        if self.mode != mode || self.chinese_mode != chinese {
+            self.mode = mode;
+            self.chinese_mode = chinese;
+            self.english = None;
+        }
+    }
+
     pub fn update(&mut self) {
         if !self.shown {
             return;
         }
-        let english = modifiers::caps_lock_on();
+        let english = self
+            .mode
+            .map_or_else(modifiers::caps_lock_on, |mode| mode == InputMode::English);
         if self.english == Some(english) {
             return;
         }
         self.english = Some(english);
         if let Some(button) = self.item.button(self.mtm) {
-            let mode = if english { "英" } else { "中" };
+            let mode = if english {
+                InputMode::English
+            } else {
+                self.chinese_mode
+            }
+            .label();
             let title = if self.cloud {
                 format!("{mode} ☁︎")
             } else {
@@ -163,7 +195,7 @@ define_class!(
     impl ModeMonitor {
         #[unsafe(method(tick:))]
         fn tick(&self, _timer: Option<&AnyObject>) {
-            crate::host::with(|h| h.indicator.update());
+            crate::host::with(|h| { h.poll_caps_lock(); h.indicator.update(); });
         }
 
         #[unsafe(method(collapse:))]

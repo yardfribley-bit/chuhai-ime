@@ -17,7 +17,7 @@ final class NativeBridge implements AutoCloseable {
 
     NativeBridge(Context context) throws Exception {
         File directory = context.getFilesDir();
-        for (String name : new String[]{"dict.qj", "wubi86.tsv"}) {
+        for (String name : new String[]{"dict.qj", "wubi86.tsv", "glossary-en.qj"}) {
             File file = new File(directory, name);
             if (!file.exists()) {
                 File temporary = new File(directory, name + ".tmp");

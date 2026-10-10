@@ -20,6 +20,11 @@ pub const MAX_DICTIONARIES: usize = 100;
 /// 设置窗口里的每个控件对应的配置项。编码进控件的 tag，`changed:` 里再解出来。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Setting {
+    /// 输入预设与 Caps Lock 策略。
+    InputMode,
+
+    CapsLockBehavior,
+
     /// `[general] learning_language`，弹出菜单，选项是打进包里的释义表语言。
     LearningLanguage,
 
@@ -201,6 +206,8 @@ pub enum Setting {
 impl Setting {
     pub fn tag(self) -> NSInteger {
         match self {
+            Self::InputMode => 58,
+            Self::CapsLockBehavior => 57,
             Self::LearningLanguage => 1,
             Self::PageSize => 2,
             Self::PageKeys => 3,
@@ -281,6 +288,8 @@ impl Setting {
             11 => Self::OpenConfigFile,
             12 => Self::Layout,
             13 => Self::Preedit,
+            57 => Self::CapsLockBehavior,
+            58 => Self::InputMode,
             14 => Self::EnglishCandidates,
             42 => Self::ChineseFirst,
             50 => Self::ShiftLetter,
@@ -364,6 +373,8 @@ mod tests {
             Setting::OpenConfigFile,
             Setting::Layout,
             Setting::Preedit,
+            Setting::InputMode,
+            Setting::CapsLockBehavior,
             Setting::EnglishCandidates,
             Setting::TranslationKeys,
             Setting::TranslationSecondKeys,

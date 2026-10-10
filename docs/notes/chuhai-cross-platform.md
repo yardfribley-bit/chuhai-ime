@@ -13,3 +13,7 @@ Android：新增系统键盘和共用 Rust 静态库、JNI 桥，五笔86、拼�
 2026-10-10 Mac build237 修复翻译等待：网络失败发送同序号空结果，壳及时结束等待；轮询窗口按请求超时和排队时间计算；结果与配置定时器加入 NSRunLoop common modes；低频配置事务提供结果轮询兜底。新增真实本地 HTTP 超时回归测试，确保失败请求仍回传终止结果。真实 OpenRouter 合成句测试成功，但需以输入法中的端到端替换作为最终验收。
 
 Mac build237 已安装；用户确认中文触发翻译后可以英文输出。输入法同一 Rust 云请求链路的合成安全句测试在约4秒返回，超时回归17项测试及 Mac 18项测试通过，Clippy通过。今日词本已产生成功接受译文后的词条。已保留 /private/tmp/Chuhai-build237-working.app 回退副本。Mac 中英切换为 Caps Lock；单击 Shift 切换尚未实现。
+
+## 三种预设与今日次数
+
+共享配置增加 input_mode（wubi/pinyin/english）及 shortcut.caps_lock_behavior（chinese_english/three_modes）。英文预设保留上一中文方案。Mac 默认中英切换，可选择三模式循环；Windows 保留 Shift 习惯；Android 提供三模式按钮。候选曝光在完成输入时去重，同一片段反复重绘只记一次，后续完成片段再次累计。学习事件携带时间，按本地日期写入词本，私密输入不记录。今日词本按 daily_counts 展示次数及候选提示／整句翻译来源，旧记录不伪造历史次数。

@@ -1,13 +1,16 @@
 //! 学习与统计的挂钩：释义兜底回填、词汇曝光、输入统计、输入日志、删候选、定时落盘。
 
 use super::Engine;
+use super::LearningTerm;
 use super::input_log::{CommitEntry, InputLogEntry, InputLogger, InputSource, LOGGED_CANDIDATES};
 use super::statistics::Usage;
 use super::vocabulary::{FRESH_UNTIL, VocabularySummary};
 use crate::candidate::{Candidate, CandidateKind, Translation};
 use crate::sentence;
 
+mod encounter;
 mod forgotten;
+pub use encounter::LearningEncounter;
 mod learner;
 mod muted;
 
@@ -48,9 +51,14 @@ impl Engine {
                 continue;
             };
             for sense in translation.senses() {
-                let key = (translation.language, sense.text.clone());
-                if !self.displayed.contains(&key) {
-                    self.displayed.push(key);
+                if !self.displayed.iter().any(|(language, word, _)| {
+                    *language == translation.language && *word == sense.text
+                }) {
+                    self.displayed.push((
+                        translation.language,
+                        sense.text.clone(),
+                        candidate.text.clone(),
+                    ));
                 }
             }
         }
@@ -63,9 +71,20 @@ impl Engine {
             self.displayed.clear();
             return;
         }
-        for (language, word) in std::mem::take(&mut self.displayed) {
+        for (language, word, meaning) in std::mem::take(&mut self.displayed) {
             self.vocabulary.record_exposure(language, &word);
+            if language == crate::Language::English && self.encountered_terms.len() < 4096 {
+                self.encountered_terms.push(LearningEncounter {
+                    term: LearningTerm { word, meaning },
+                    at: std::time::SystemTime::now(),
+                });
+            }
         }
+    }
+
+    /// 取走已完成输入片段中的英文提示；重复重绘不会增加轮次，私密输入不记录。
+    pub fn take_encountered_terms(&mut self) -> Vec<LearningEncounter> {
+        std::mem::take(&mut self.encountered_terms)
     }
 
     /// 按词汇记录给译词标生词：看到的轮次不到 [`FRESH_UNTIL`] 的算。

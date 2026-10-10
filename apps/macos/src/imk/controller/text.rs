@@ -5,6 +5,7 @@ use crate::host;
 use crate::imk::{TextClient, secure_input};
 use objc2_app_kit::NSEventModifierFlags;
 use qingjian_core::QUESTION_PREFIX;
+use qingjian_platform::InputMode;
 
 impl QingjianInputController {
     pub(super) fn handle_text(
@@ -17,9 +18,14 @@ impl QingjianInputController {
         self.note_application(&client);
         let mut composing = host::with(|h| !h.engine.composition().is_empty()).unwrap_or(false);
         // 使用当前按键携带的状态，不能用稍后查询的全局修饰键状态代替。
-        let english = flags.contains(NSEventModifierFlags::CapsLock);
+        let selected_mode = host::with(|h| h.settings.config().general.input_mode).flatten();
+        let english = selected_mode.map_or_else(
+            || flags.contains(NSEventModifierFlags::CapsLock),
+            |mode| mode == InputMode::English,
+        );
         // 终端、编辑器这类应用（`[apps] english_candidates_off`）里英文模式是纯直通
         let english_candidates = english
+            && selected_mode.is_none()
             && host::with(|h| h.english_candidates_in(client.bundle_identifier().as_deref()))
                 .unwrap_or(false);
         // 切换输入语言时先结束旧缓冲区，避免把中文编码与英文单词混成一个候选。
@@ -45,6 +51,15 @@ impl QingjianInputController {
             return false;
         };
         let c = char::from(*byte);
+        let c = if selected_mode.is_some()
+            && !english
+            && flags.contains(NSEventModifierFlags::CapsLock)
+            && !flags.contains(NSEventModifierFlags::Shift)
+        {
+            c.to_ascii_lowercase()
+        } else {
+            c
+        };
         host::with(|h| h.indicator.update());
         if !composing
             && c == '/'

@@ -1,8 +1,10 @@
 mod apps;
 mod aux_code;
 mod candidate_renderer;
+mod caps_lock_behavior;
 mod dictionaries;
 mod general;
+mod input_mode;
 mod key_combo;
 mod layout_mode;
 mod log_level;
@@ -32,10 +34,12 @@ pub use apps::{
 };
 pub use aux_code::AuxCodeConfig;
 pub use candidate_renderer::CandidateRenderer;
+pub use caps_lock_behavior::CapsLockBehavior;
 pub use dictionaries::{DEFAULT_DOMAINS, DictionariesConfig};
 pub use general::{
     DEFAULT_PAGE_KEYS, GeneralConfig, LEARNING_LANGUAGE_OFF, MAX_PAGE_SIZE, PAGE_KEY_OPTIONS,
 };
+pub use input_mode::InputMode;
 pub use key_combo::KeyCombo;
 pub use layout_mode::LayoutMode;
 pub use log_level::LogLevel;
@@ -488,6 +492,39 @@ impl Config {
         write_file(path, &document.to_string())
     }
 
+    pub fn set_input_mode(path: &Path, mode: InputMode) -> Result<(), ConfigError> {
+        let source = match std::fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => TEMPLATE.to_owned(),
+            Err(source) => {
+                return Err(ConfigError::Read {
+                    path: path.to_owned(),
+                    source,
+                });
+            }
+        };
+        let mut document: DocumentMut = source.parse().map_err(|source| ConfigError::Edit {
+            path: path.to_owned(),
+            source: Box::new(source),
+        })?;
+        if !document.get("general").is_some_and(|item| item.is_table()) {
+            document["general"] = toml_edit::table();
+        }
+        document["general"]["input_mode"] = toml_edit::value(mode.key());
+        match mode {
+            InputMode::Wubi => {
+                document["general"]["wubi"] = toml_edit::value("wubi86");
+                document["general"]["scheme"] = toml_edit::value("none");
+            }
+            InputMode::Pinyin => {
+                document["general"]["wubi"] = toml_edit::value("");
+                document["general"]["scheme"] = toml_edit::value("pinyin");
+            }
+            InputMode::English => {}
+        }
+        write_file(path, &document.to_string())
+    }
+
     /// 原地把一个键改成字符串数组（`[section] key = ["a", "b"]`），其余内容、注释与顺序原样保留。
     /// 设置界面改词库列表（`[dictionaries] domains` / `disabled`）走这里，[`Self::set_value`] 只能写标量。
     pub fn set_array<S: AsRef<str>>(
@@ -548,6 +585,33 @@ fn write_file(path: &Path, text: &str) -> Result<(), ConfigError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn presets_are_atomic_and_english_preserves_the_previous_chinese_scheme() {
+        let path = std::env::temp_dir().join("chuhai-input-presets-test.toml");
+        let _ = std::fs::remove_file(&path);
+        Config::set_bool(&path, "predict", "enabled", true).unwrap();
+        Config::set_input_mode(&path, InputMode::Wubi).unwrap();
+        let wubi = Config::load(&path).unwrap();
+        assert!(wubi.general.wubi());
+        assert_eq!(wubi.general.scheme(), Scheme::Off);
+        Config::set_input_mode(&path, InputMode::English).unwrap();
+        let english = Config::load(&path).unwrap();
+        assert_eq!(english.general.current_input_mode(), InputMode::English);
+        assert_eq!(english.general.chinese_input_mode(), InputMode::Wubi);
+        Config::set_input_mode(&path, InputMode::Pinyin).unwrap();
+        let pinyin = Config::load(&path).unwrap();
+        assert!(!pinyin.general.wubi());
+        assert_eq!(pinyin.general.scheme(), Scheme::Pinyin);
+        assert!(pinyin.predict.enabled);
+        std::fs::write(&path, "[general\ninput_mode = broken").unwrap();
+        assert!(Config::set_input_mode(&path, InputMode::Wubi).is_err());
+        assert_eq!(
+            std::fs::read_to_string(&path).unwrap(),
+            "[general\ninput_mode = broken"
+        );
+        let _ = std::fs::remove_file(&path);
+    }
 
     #[test]
     fn template_parses_to_defaults() {

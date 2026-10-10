@@ -1,7 +1,10 @@
 //! 「通用」页：学习语言、每页候选数、输入方案、英文模式候选。
 
-use qingjian_platform::{MAX_PAGE_SIZE, Scheme, ShiftLetter, SwitchKey};
-use windows_reactor::*;
+use qingjian_platform::{InputMode, MAX_PAGE_SIZE, Scheme, ShiftLetter, SwitchKey};
+use windows_reactor::{
+    Callback, CheckBox, ComboBox, NumberBox, Orientation, StackPanel, ToggleSwitch, View,
+    ViewContext,
+};
 
 use crate::panel::controls::{feedback, field, index_of, page};
 use crate::panel::{Message, Settings};
@@ -52,6 +55,18 @@ pub(crate) fn view(settings: &Settings, context: &mut ViewContext<Settings>) -> 
     let g = &settings.config.general;
     let english_off = !settings.config.apps.english_candidates_off.is_empty();
     let rows = [
+        field(
+            "当前输入",
+            "直接选择五笔、拼音或英文；Shift 仍按已有习惯切换中英文。英文预设直接输入。",
+            ComboBox::new()
+                .items_source(InputMode::ALL.iter().map(|mode| mode.label()))
+                .selected_index(
+                    InputMode::ALL
+                        .iter()
+                        .position(|mode| *mode == g.current_input_mode()),
+                )
+                .on_selection_changed(context.callback(Message::InputMode)),
+        ),
         field(
             "学习语言",
             "候选词右侧显示哪种语言的译词，只列出装了释义表的语言；「不显示译文」同时关掉生词标记与释义兜底。",

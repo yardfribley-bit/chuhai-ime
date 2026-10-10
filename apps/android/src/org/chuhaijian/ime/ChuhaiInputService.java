@@ -29,7 +29,7 @@ public final class ChuhaiInputService extends InputMethodService {
     private boolean english, privateField;
     private final ExecutorService network = Executors.newSingleThreadExecutor();
     private int generation;
-    private int modeIndex = 2;
+    private int modeIndex = 0, lastChineseMode = 0;
     private String original, source, translated;
     private JSONArray terms;
     private int originalCursor;
@@ -37,15 +37,17 @@ public final class ChuhaiInputService extends InputMethodService {
 
     public void onCreate() {
         super.onCreate();
-        try { nativeEngine = new NativeBridge(this); modeIndex=getSharedPreferences("keyboard",MODE_PRIVATE).getInt("mode",2); if(modeIndex<0 || modeIndex>2) modeIndex=2; nativeEngine.frame(command("mode").put("mode",new String[]{"wubi","pinyin","mixed"}[modeIndex])); }
+        try { nativeEngine = new NativeBridge(this); modeIndex=getSharedPreferences("keyboard",MODE_PRIVATE).getInt("input_mode_v2",getSharedPreferences("keyboard",MODE_PRIVATE).getInt("mode",0)==1?1:0); if(modeIndex<0 || modeIndex>2) modeIndex=0; lastChineseMode=getSharedPreferences("keyboard",MODE_PRIVATE).getInt("chinese_mode",0); if(lastChineseMode!=1) lastChineseMode=0; english=modeIndex==2; nativeEngine.frame(command("mode").put("mode",new String[]{"wubi","pinyin","english"}[modeIndex])); }
         catch (Exception error) { composition = "词库加载失败：" + error.getMessage(); }
     }
 
     public View onCreateInputView() {
         LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL);
         status = new TextView(this); status.setTextSize(17); status.setPadding(12,8,12,8); root.addView(status);
+        LinearLayout modes = new LinearLayout(this);
+        addKey(modes, "五笔", () -> selectMode(0)); addKey(modes, "拼音", () -> selectMode(1)); addKey(modes, "英文", () -> selectMode(2)); root.addView(modes);
         HorizontalScrollView scroll = new HorizontalScrollView(this);
-        candidates = new LinearLayout(this); scroll.addView(candidates); root.addView(scroll);
+        candidates = new LinearLayout(this); scroll.addView(candidates); root.addView(scroll); scroll.setOnScrollChangeListener((view,x,y,oldX,oldY) -> noteVisibleHints());
         String[] rows = {"1234567890", "qwertyuiop", "asdfghjkl", "zxcvbnm"};
         for (String row : rows) {
             LinearLayout line = new LinearLayout(this);
@@ -53,8 +55,8 @@ public final class ChuhaiInputService extends InputMethodService {
             root.addView(line);
         }
         LinearLayout tools = new LinearLayout(this);
-        addKey(tools, "方案", this::chooseMode);
-        addKey(tools, "中/英", () -> { cancelTranslation(); clear(); english = !english; showStatus(english ? "英文" : "中文"); });
+        addKey(tools, "五/拼/英", () -> selectMode((modeIndex+1)%3));
+        addKey(tools, "中/英", () -> selectMode(english ? lastChineseMode : 2));
         addKey(tools, "删除", this::delete);
         addKey(tools, "设置", () -> startActivity(new Intent(this, SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
         root.addView(tools);
@@ -82,6 +84,7 @@ public final class ChuhaiInputService extends InputMethodService {
         privateField = (type == InputType.TYPE_CLASS_TEXT && (variation == InputType.TYPE_TEXT_VARIATION_PASSWORD || variation == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD || variation == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD))
             || (type == InputType.TYPE_CLASS_NUMBER && variation == InputType.TYPE_NUMBER_VARIATION_PASSWORD)
             || (info.imeOptions & EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING) != 0;
+        try { if(nativeEngine!=null) nativeEngine.frame(command("privacy").put("private",privateField)); } catch(Exception e) { showStatus(e.getMessage()); }
     }
 
     public void onFinishInput() { cancelTranslation(); clear(); super.onFinishInput(); }
@@ -104,13 +107,22 @@ public final class ChuhaiInputService extends InputMethodService {
                 else connection.finishComposingText();
             }
             if (candidates != null) {
-                candidates.removeAllViews(); JSONArray list = frame.optJSONArray("candidates");
+                candidates.removeAllViews(); JSONArray list = frame.optJSONArray("candidates"); JSONArray hints = frame.optJSONArray("annotations");
                 if (list != null) for (int i=0;i<list.length();i++) {
-                    final int index=i; Button button=new Button(this); button.setText(list.getString(i)); candidates.addView(button); button.setOnClickListener(v -> accept(index));
+                    final int index=i; Button button=new Button(this); button.setText(list.getString(i)+(hints!=null && !hints.optString(i).isEmpty()?"\n"+hints.optString(i):"")); candidates.addView(button); button.setOnClickListener(v -> accept(index));
                 }
             }
-            if (original == null) showStatus(composition.isEmpty() ? "出海舰 · 中文输入后 // 翻译" : composition);
+            if(candidates!=null) candidates.post(this::noteVisibleHints);
+            if (original == null) showStatus(composition.isEmpty() ? new String[]{"五笔","拼音","英文"}[modeIndex]+" · // 翻译" : composition);
         } catch (Exception e) { showStatus("输入失败："+e.getMessage()); }
+    }
+
+    private void noteVisibleHints() {
+        if(nativeEngine==null || candidates==null || privateField) return;
+        try { JSONArray indices=new JSONArray(); android.graphics.Rect rect=new android.graphics.Rect();
+            for(int i=0;i<candidates.getChildCount();i++) if(candidates.getChildAt(i).getGlobalVisibleRect(rect) && rect.width()>0 && rect.height()>0) indices.put(i);
+            nativeEngine.call(command("visible").put("indices",indices));
+        } catch(Exception e) { showStatus(e.getMessage()); }
     }
 
     private void type(String text) {
@@ -126,12 +138,10 @@ public final class ChuhaiInputService extends InputMethodService {
     private void raw() { if (composition.isEmpty()) return; try { updateFrame(nativeEngine.frame(command("raw"))); } catch(Exception e) { showStatus(e.getMessage()); } }
     private void delete() { cancelTranslation(); if (!composition.isEmpty()) { try { updateFrame(nativeEngine.frame(command("delete"))); } catch(Exception e) { showStatus(e.getMessage()); } } else { InputConnection c=getCurrentInputConnection(); if(c!=null) c.deleteSurroundingTextInCodePoints(1,0); } }
 
-    private void chooseMode() {
-        cancelTranslation(); raw(); english=false;
-        modeIndex=(modeIndex+1)%3;
-        getSharedPreferences("keyboard",MODE_PRIVATE).edit().putInt("mode",modeIndex).apply();
-        try { updateFrame(nativeEngine.frame(command("mode").put("mode",new String[]{"wubi","pinyin","mixed"}[modeIndex]))); showStatus(new String[]{"五笔86","拼音","五笔和拼音混输"}[modeIndex]); } catch(Exception e) { showStatus(e.getMessage()); }
-
+    private void selectMode(int mode) {
+        cancelTranslation(); raw(); modeIndex=mode; english=mode==2; if(!english) lastChineseMode=mode;
+        getSharedPreferences("keyboard",MODE_PRIVATE).edit().putInt("input_mode_v2",modeIndex).putInt("chinese_mode",lastChineseMode).apply();
+        try { updateFrame(nativeEngine.frame(command("mode").put("mode",new String[]{"wubi","pinyin","english"}[modeIndex]))); } catch(Exception e) { showStatus(e.getMessage()); }
     }
 
     private boolean trigger(InputConnection connection) {

@@ -43,7 +43,7 @@ pub use input_log::{
     CommitEntry, INPUT_LOG_VERSION, InputLogEntry, InputLogger, InputSource, LOGGED_CANDIDATES,
     NoInputLogger,
 };
-pub use learning::{Forgotten, Learner, NoLearner};
+pub use learning::{Forgotten, Learner, LearningEncounter, NoLearner};
 pub use marked::{AuxSegment, MarkedKind, MarkedSegment};
 pub use mode_keys::{ModeKeys, QUESTION_PREFIX};
 pub use prediction::{
@@ -208,7 +208,10 @@ pub struct Engine {
     gloss_filler: Box<dyn GlossFiller>,
 
     /// 候选窗口当前页上的译词（壳每次画完告知），上屏时记成「看到过」。
-    displayed: Vec<(Language, String)>,
+    displayed: Vec<(Language, String, String)>,
+
+    /// 已完成输入片段中实际展示的英文提示，壳批量取走保存。
+    encountered_terms: Vec<LearningEncounter>,
 
     /// 上一次查询的摘要，上屏时写进输入日志。
     last_query: std::cell::RefCell<Option<query::QuerySnapshot>>,
@@ -411,6 +414,7 @@ impl Engine {
             vocabulary: Box::new(NoVocabularyTracker),
             gloss_filler: Box::new(NoGlossFiller),
             displayed: Vec::new(),
+            encountered_terms: Vec::new(),
             last_query: std::cell::RefCell::new(None),
             recording: Vec::new(),
             history: InputHistory::default(),

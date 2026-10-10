@@ -56,8 +56,8 @@ public final class SettingsActivity extends Activity {
             if(nativeEngine!=null) nativeEngine.close(); nativeEngine=new NativeBridge(this);
             JSONArray words=new JSONArray(nativeEngine.call(new JSONObject().put("op","today")));
             String[] labels=new String[words.length()];
-            for(int i=0;i<words.length();i++) { JSONObject word=words.getJSONObject(i); labels[i]=word.getString("word")+" — "+word.getString("meaning")+"\n"+word.getString("source")+"\n"+word.getString("translation"); }
-            if(labels.length==0) { new android.app.AlertDialog.Builder(this).setTitle("今日学词").setMessage("今天还没有新增词条，接受英文译文后再来复习。").setPositiveButton("知道了",null).show(); return; }
+            for(int i=0;i<words.length();i++) { JSONObject word=words.getJSONObject(i); labels[i]=word.getString("word")+" — "+word.getString("meaning")+"\n"+"今日出现："+(word.optJSONObject("daily_counts")!=null && word.optJSONObject("daily_counts").has(java.time.LocalDate.now().toString())?word.optJSONObject("daily_counts").optInt(java.time.LocalDate.now().toString())+" 次":"旧记录未统计")+"\n来源："+word.optJSONArray("origins")+"\n"+word.getString("source")+"\n"+word.getString("translation"); }
+            if(labels.length==0) { new android.app.AlertDialog.Builder(this).setTitle("今日学词").setMessage("今天还没有词条，完成中文输入或接受英文译文后再来复习。").setPositiveButton("知道了",null).show(); return; }
             new android.app.AlertDialog.Builder(this).setTitle("今日学词 · 点击可标记已掌握").setItems(labels,(dialog,index) -> {
                 try { String word=words.getJSONObject(index).getString("word"); new android.app.AlertDialog.Builder(this).setTitle(word).setMessage("已掌握这个词？").setPositiveButton("已掌握",(d,w) -> { try { nativeEngine.frame(new JSONObject().put("op","mastered").put("word",word)); } catch(Exception error) { text(error.getMessage(),15); } }).setNegativeButton("继续学习",null).show(); } catch(Exception error) { text(error.getMessage(),15); }
             }).show();

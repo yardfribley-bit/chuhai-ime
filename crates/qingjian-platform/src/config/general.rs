@@ -22,6 +22,9 @@ pub const LEARNING_LANGUAGE_OFF: &str = "off";
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct GeneralConfig {
+    /// 显式选择的输入预设；旧配置保持原来的方案与按键行为。
+    pub input_mode: Option<super::InputMode>,
+
     /// 学习语言（ISO 639-1，`en` / `ja` / `es`；`off` 不显示译文）：候选旁显示哪种语言的译文。要有对应的释义表文件才生效。
     pub learning_language: String,
 
@@ -128,6 +131,7 @@ impl Default for GeneralConfig {
             renderer: CandidateRenderer::default(),
             font: String::new(),
             preedit: PreeditMode::default(),
+            input_mode: None,
             english_candidates: true,
             traditional: false,
             chinese_first: false,
@@ -152,6 +156,18 @@ impl Default for GeneralConfig {
 }
 
 impl GeneralConfig {
+    pub fn chinese_input_mode(&self) -> super::InputMode {
+        if self.wubi() {
+            super::InputMode::Wubi
+        } else {
+            super::InputMode::Pinyin
+        }
+    }
+
+    pub fn current_input_mode(&self) -> super::InputMode {
+        self.input_mode.unwrap_or_else(|| self.chinese_input_mode())
+    }
+
     /// 拼音侧方案。`scheme` 没写时用旧键（`shuangpin` / `zhuyin`）推，都没有就是全拼。
     pub fn scheme(&self) -> Scheme {
         let key = self.scheme.trim();

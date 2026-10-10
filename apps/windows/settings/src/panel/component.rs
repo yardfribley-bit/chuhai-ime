@@ -1,10 +1,15 @@
 //! 根组件的 Reactor 生命周期：建状态、按消息落盘、画左侧导航 + 当前页。
 
 use qingjian_platform::{
-    CandidateRenderer, Config, DEFAULT_ENGLISH_CANDIDATES_OFF_WINDOWS, LayoutMode, LogLevel,
-    PreeditMode, ShiftLetter, ThemeMode, UpdateChannel,
+    CandidateRenderer, Config, DEFAULT_ENGLISH_CANDIDATES_OFF_WINDOWS, InputMode, LayoutMode,
+    LogLevel, PreeditMode, ShiftLetter, ThemeMode, UpdateChannel,
 };
-use windows_reactor::*;
+use windows_reactor::{
+    Component, ComponentContext, ElementRef, KeyedView, NavigationView,
+    NavigationViewBackButtonVisible, NavigationViewItem, NavigationViewItemSlot,
+    NavigationViewPaneDisplayMode, NavigationViewSlot, SlotView, Symbol, SymbolIcon, View,
+    ViewContext,
+};
 
 use super::cloud_status::CloudStatus;
 use super::controls::{export_logs, log_dir, open_in_editor, open_with_explorer};
@@ -50,6 +55,12 @@ impl Component for Settings {
             Message::Navigate(None) => {}
 
             // 通用页
+            Message::InputMode(Some(index)) if index < InputMode::ALL.len() => {
+                if let Err(error) = Config::set_input_mode(&self.path, InputMode::ALL[index]) {
+                    tracing::warn!(%error, "输入预设保存失败");
+                }
+                self.reload();
+            }
             Message::LearningLanguage(Some(i)) if i < general::LANGUAGES.len() => {
                 self.save("general", "learning_language", general::LANGUAGES[i].1);
             }

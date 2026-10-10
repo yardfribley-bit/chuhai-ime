@@ -125,6 +125,8 @@ pub fn init(mtm: MainThreadMarker, info: &BundleInfo) -> Result<(), HostError> {
         *host.borrow_mut() = Some(Host {
             engine,
             window,
+            pending_input_mode: false,
+            last_encounter_flush: std::time::Instant::now(),
             indicator,
             menu,
             preferences,

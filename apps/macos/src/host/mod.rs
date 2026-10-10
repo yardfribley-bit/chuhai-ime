@@ -10,6 +10,7 @@ mod config;
 mod diagnostics;
 mod dictionaries;
 mod init;
+mod input_mode;
 mod model;
 mod presenting;
 mod session;
@@ -56,6 +57,12 @@ pub use presenting::TranslationJob;
 pub use session::Session;
 
 pub struct Host {
+    /// 下个按键先把旧方案的未选编码原样保留。
+    pub pending_input_mode: bool,
+
+    /// 候选学习词条批量落盘节拍，避免逐键写文件。
+    pub last_encounter_flush: std::time::Instant,
+
     /// 输入内核。平台层只能通过它的公开 API 拿候选，不允许碰词库或排序。
     pub engine: Engine,
 

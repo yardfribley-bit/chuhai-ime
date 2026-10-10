@@ -7,6 +7,7 @@ pub(crate) enum Message {
     Navigate(Option<String>),
 
     // 通用页
+    InputMode(Option<usize>),
     LearningLanguage(Option<usize>),
     PageSize(Option<f64>),
     Scheme(Option<usize>),

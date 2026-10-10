@@ -9,6 +9,9 @@ use super::switch_key::SwitchKeys;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ShortcutConfig {
+    /// Mac Caps Lock 默认切中英；three_modes 循环五笔、拼音、英文。
+    pub caps_lock_behavior: super::CapsLockBehavior,
+
     /// 表达式 / 问字模式键，键名与以前一样直接在分节下（`expression` / `question`）。
     #[serde(flatten)]
     pub mode: ModeKeys,
@@ -37,6 +40,7 @@ impl Default for ShortcutConfig {
         #[cfg(not(windows))]
         let (translation, translation_second) = (Modifiers::OPTION, Modifiers::SHIFT_OPTION);
         Self {
+            caps_lock_behavior: super::CapsLockBehavior::default(),
             mode: ModeKeys::default(),
             switch_mode: SwitchKeys::default(),
             translation,

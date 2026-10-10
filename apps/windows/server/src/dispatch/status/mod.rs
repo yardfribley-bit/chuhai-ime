@@ -19,6 +19,18 @@ impl Router {
     /// DLL 那边用户切了模式：成为全局模式。内置英文模式关着时不收英文。
     pub(super) fn handle_mode_changed(&mut self, english: bool) {
         self.english = english && self.config.english_mode;
+        if let Some(path) = self.config_path() {
+            let mode = if self.english {
+                qingjian_platform::InputMode::English
+            } else if self.config.wubi {
+                qingjian_platform::InputMode::Wubi
+            } else {
+                qingjian_platform::InputMode::Pinyin
+            };
+            if let Err(error) = Config::set_value(path, "general", "input_mode", mode.key()) {
+                tracing::warn!(%error, "输入模式保存失败");
+            }
+        }
         self.ime_active = true;
         self.reconcile_status();
     }

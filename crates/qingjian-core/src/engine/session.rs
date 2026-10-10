@@ -42,7 +42,7 @@ pub struct EngineSession {
     committed_since_break: bool,
 
     /// 当前可见候选的译词。
-    displayed: Vec<(Language, String)>,
+    displayed: Vec<(Language, String, String)>,
 
     /// 本会话最近的上屏前文。
     history: InputHistory,

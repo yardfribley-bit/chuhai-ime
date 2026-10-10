@@ -196,6 +196,9 @@ impl QingjianInputController {
         if event.r#type() != NSEventType::KeyDown || self.in_login_window() {
             return false;
         }
+        if host::with(|h| std::mem::take(&mut h.pending_input_mode)).unwrap_or(false) {
+            self.commit_raw(client);
+        }
         let flags = event.modifierFlags();
         let (command, control, option, shift) = (
             flags.contains(NSEventModifierFlags::Command),

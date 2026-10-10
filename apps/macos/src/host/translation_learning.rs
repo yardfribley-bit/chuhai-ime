@@ -25,7 +25,26 @@ impl Host {
         }
     }
 
+    pub fn record_learning_encounters(&mut self) {
+        let terms = self.engine.take_encountered_terms();
+        if terms.is_empty() {
+            return;
+        }
+        let Some(dir) = paths::user_data_dir() else {
+            return;
+        };
+        let result = (|| -> Result<(), std::io::Error> {
+            let mut book = TranslationBook::open(dir.join("translation-words.json"))?;
+            book.record_encounters(&terms);
+            book.save()
+        })();
+        if let Err(error) = result {
+            tracing::warn!(%error, "候选词条保存失败");
+        }
+    }
+
     pub fn open_today_words(&mut self) {
+        self.record_learning_encounters();
         let Some(dir) = paths::user_data_dir() else {
             return;
         };

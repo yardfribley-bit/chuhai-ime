@@ -4,7 +4,7 @@ use objc2::MainThreadMarker;
 use objc2::rc::Retained;
 use objc2_app_kit::{NSButton, NSPopUpButton};
 use qingjian_core::Language;
-use qingjian_platform::{Config, MAX_PAGE_SIZE, Scheme};
+use qingjian_platform::{CapsLockBehavior, Config, InputMode, MAX_PAGE_SIZE, Scheme};
 
 use crate::preferences::controls::{
     checkbox, language_label, note, row_checkbox, row_popup, select, set_checked,
@@ -14,6 +14,12 @@ use crate::preferences::setting::Setting;
 use crate::preferences::target::PreferencesTarget;
 
 pub struct GeneralPage {
+    /// 当前输入预设。
+    input_mode: Retained<NSPopUpButton>,
+
+    /// Caps Lock 保持中英文或循环三个预设。
+    caps_behavior: Retained<NSPopUpButton>,
+
     /// 学习语言。
     learning_language: Retained<NSPopUpButton>,
 
@@ -58,6 +64,30 @@ impl GeneralPage {
         target: &PreferencesTarget,
         languages: &[Language],
     ) -> Self {
+        let input_mode = row_popup(
+            layout,
+            mtm,
+            "当前输入",
+            &InputMode::ALL.map(|mode| mode.label().to_owned()),
+            Setting::InputMode,
+            target,
+        );
+        let caps_behavior = row_popup(
+            layout,
+            mtm,
+            "Caps Lock 切换",
+            &[
+                "中英文（保留中文方案）".to_owned(),
+                "五笔 → 拼音 → 英文".to_owned(),
+            ],
+            Setting::CapsLockBehavior,
+            target,
+        );
+        note(
+            layout,
+            mtm,
+            "菜单里也可直接选择五笔、拼音或英文；当前状态以菜单栏文字为准，绿灯不代表当前模式。英文预设直接输入，按住 Shift 输入大写。 ",
+        );
         // 最后一项是关
         let language_titles: Vec<String> = languages
             .iter()
@@ -134,12 +164,7 @@ impl GeneralPage {
         );
         let traditional = checkbox(mtm, "繁体输出", Setting::Traditional, target);
         row_checkbox(layout, &traditional);
-        let english = checkbox(
-            mtm,
-            "英文模式（Caps Lock）也给候选",
-            Setting::EnglishCandidates,
-            target,
-        );
+        let english = checkbox(mtm, "英文补全候选", Setting::EnglishCandidates, target);
         row_checkbox(layout, &english);
         note(
             layout,
@@ -183,6 +208,8 @@ impl GeneralPage {
             "不勾（缺省）是临时打英文：拼音先上屏，这个大写字母原样交给应用。勾上后它进拼音缓冲区、按小写参与匹配，Cpan 与 cpan 一样能出「C盘」；回车原样上屏时保留大写。",
         );
         Self {
+            input_mode,
+            caps_behavior,
             learning_language,
             page_size,
             scheme,
@@ -200,6 +227,18 @@ impl GeneralPage {
 
     pub fn sync(&self, config: &Config) {
         let general = &config.general;
+        select(
+            &self.input_mode,
+            InputMode::ALL
+                .iter()
+                .position(|mode| *mode == general.current_input_mode()),
+        );
+        select(
+            &self.caps_behavior,
+            CapsLockBehavior::ALL
+                .iter()
+                .position(|behavior| *behavior == config.shortcut.caps_lock_behavior),
+        );
         select(
             &self.punctuation,
             Some(usize::from(!general.full_width_punctuation)),

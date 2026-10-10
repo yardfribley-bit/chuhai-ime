@@ -9,6 +9,9 @@ use super::RenderSettings;
 /// Router 要用的配置项，与 macOS 壳的 `Host` 字段对齐。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RouterConfig {
+    /// 显式输入预设；快捷键仍可切换中英文。
+    pub input_mode: Option<qingjian_platform::InputMode>,
+
     /// 每页候选数（`[general] page_size`）。
     pub page_size: usize,
 
@@ -105,6 +108,7 @@ impl RouterConfig {
 impl From<&Config> for RouterConfig {
     fn from(config: &Config) -> Self {
         Self {
+            input_mode: config.general.input_mode,
             page_size: config.general.page_size(),
             cloud_slots: config.predict.slots,
             shift_letter_compose: config.general.shift_letter.compose(),

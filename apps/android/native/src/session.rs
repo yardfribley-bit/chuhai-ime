@@ -1,8 +1,9 @@
 //! Android 共用内核会话；系统壳只传事件和展示 JSON 帧。
 
-use qingjian_core::{Candidate, Engine, LearningTerm};
+use qingjian_core::{Candidate, Engine, Language, LearningTerm};
 use qingjian_dictionary::{CodeTable, Dictionary};
 use qingjian_learning::TranslationBook;
+use qingjian_translate::Glossary;
 use serde_json::{Value, json};
 use std::path::Path;
 
@@ -23,13 +24,24 @@ impl Session {
         engine.set_code_table(Some(
             CodeTable::from_path(dir.join("wubi86.tsv")).map_err(|e| e.to_string())?,
         ));
-        let book = TranslationBook::open(dir.join("translation-words.json")).unwrap_or_default();
+        engine.set_translator(Box::new(
+            Glossary::from_path(Language::English, dir.join("glossary-en.qj"))
+                .map_err(|e| e.to_string())?,
+        ));
+        let book =
+            TranslationBook::open(dir.join("translation-words.json")).map_err(|e| e.to_string())?;
         Ok(Self {
             engine,
             candidates: Vec::new(),
             book,
             data_dir: dir.to_owned(),
         })
+    }
+
+    fn flush_words(&mut self) -> Result<(), String> {
+        self.book
+            .record_encounters(&self.engine.take_encountered_terms());
+        self.book.save().map_err(|e| e.to_string())
     }
 
     pub fn call(&mut self, message: &str) -> Result<Value, String> {
@@ -44,10 +56,25 @@ impl Session {
             "delete" => {
                 self.engine.backspace();
             }
-            "clear" => self.engine.clear(),
-            "raw" => {
-                commit = Some(self.engine.composition().typed_text());
+            "visible" => {
+                let indices = message["indices"].as_array().cloned().unwrap_or_default();
+                self.engine.note_displayed(
+                    indices
+                        .iter()
+                        .filter_map(|index| index.as_u64())
+                        .filter_map(|index| self.candidates.get(index as usize)),
+                );
+                return Ok(json!({}));
+            }
+            "privacy" => self
+                .engine
+                .set_private(message["private"].as_bool().unwrap_or(true)),
+            "clear" => {
                 self.engine.clear();
+                self.flush_words()?;
+            }
+            "raw" => {
+                commit = Some(self.engine.take_raw());
             }
             "accept" => {
                 let index = message["index"].as_u64().unwrap_or(0) as usize;
@@ -60,15 +87,17 @@ impl Session {
             "mode" => {
                 self.engine.clear();
                 let mode = message["mode"].as_str().unwrap_or("mixed");
+                self.engine.set_english_mode(mode == "english");
                 self.engine.set_phonetic(mode != "wubi");
-                self.engine.set_code_table(if mode == "pinyin" {
-                    None
-                } else {
-                    Some(
-                        CodeTable::from_path(self.data_dir.join("wubi86.tsv"))
-                            .map_err(|e| e.to_string())?,
-                    )
-                });
+                self.engine
+                    .set_code_table(if mode == "pinyin" || mode == "english" {
+                        None
+                    } else {
+                        Some(
+                            CodeTable::from_path(self.data_dir.join("wubi86.tsv"))
+                                .map_err(|e| e.to_string())?,
+                        )
+                    });
             }
             "trigger" => {
                 let before = message["before"].as_str().unwrap_or_default();
@@ -85,6 +114,7 @@ impl Session {
                 );
             }
             "record" => {
+                self.flush_words()?;
                 self.book = TranslationBook::open(self.data_dir.join("translation-words.json"))
                     .map_err(|e| e.to_string())?;
                 let source = message["source"].as_str().unwrap_or_default();
@@ -101,6 +131,7 @@ impl Session {
                 self.book.save().map_err(|e| e.to_string())?;
             }
             "today" => {
+                self.flush_words()?;
                 self.book = TranslationBook::open(self.data_dir.join("translation-words.json"))
                     .map_err(|e| e.to_string())?;
                 return serde_json::to_value(
@@ -109,6 +140,7 @@ impl Session {
                 .map_err(|e| e.to_string());
             }
             "mastered" => {
+                self.flush_words()?;
                 self.book = TranslationBook::open(self.data_dir.join("translation-words.json"))
                     .map_err(|e| e.to_string())?;
                 self.book
@@ -118,13 +150,24 @@ impl Session {
             "frame" => {}
             _ => return Err("unknown operation".into()),
         }
-        self.candidates = self
-            .engine
-            .query()
-            .map(|q| q.candidates.items)
-            .unwrap_or_default();
+        self.book
+            .record_encounters(&self.engine.take_encountered_terms());
+        self.candidates = match self.engine.query() {
+            Ok(mut query) => {
+                self.engine.annotate(&mut query.candidates);
+                query.candidates.items
+            }
+            Err(_) => Vec::new(),
+        };
+
         Ok(
-            json!({"compose": self.engine.composition().typed_text(), "candidates": self.candidates.iter().take(20).map(|c| &c.text).collect::<Vec<_>>(), "commit": commit}),
+            json!({"compose": self.engine.composition().typed_text(), "candidates": self.candidates.iter().take(20).map(|c| &c.text).collect::<Vec<_>>(), "annotations": self.candidates.iter().take(20).map(|candidate| candidate.translation.as_ref().map(|translation| translation.senses().iter().map(|sense| sense.text.clone()).collect::<Vec<_>>().join("; ")).unwrap_or_default()).collect::<Vec<_>>(), "commit": commit}),
         )
+    }
+}
+
+impl Drop for Session {
+    fn drop(&mut self) {
+        let _ = self.flush_words();
     }
 }

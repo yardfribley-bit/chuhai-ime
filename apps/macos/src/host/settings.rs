@@ -7,9 +7,9 @@ use crate::menubar::MenuAction;
 use crate::preferences::{DEFAULT_FONT_LABEL, Setting, SettingValue};
 use qingjian_core::{FuzzyRules, ModeKeys};
 use qingjian_platform::{
-    CandidateRenderer, DEFAULT_ENGLISH_CANDIDATES_OFF, KeyCombo, LEARNING_LANGUAGE_OFF, LayoutMode,
-    LogLevel, Modifiers, PAGE_KEY_OPTIONS, PreeditMode, Scheme, ShiftLetter, ShortcutConfig,
-    ThemeMode, UpdateChannel,
+    CandidateRenderer, CapsLockBehavior, DEFAULT_ENGLISH_CANDIDATES_OFF, InputMode, KeyCombo,
+    LEARNING_LANGUAGE_OFF, LayoutMode, LogLevel, Modifiers, PAGE_KEY_OPTIONS, PreeditMode, Scheme,
+    ShiftLetter, ShortcutConfig, ThemeMode, UpdateChannel,
 };
 
 impl Host {
@@ -61,6 +61,7 @@ impl Host {
     pub fn perform(&mut self, action: MenuAction) {
         tracing::info!(?action, "菜单");
         match action {
+            MenuAction::SelectInputMode(mode) => self.select_input_mode(mode),
             MenuAction::ToggleCloud => {
                 let on = !self.settings.config().predict.enabled;
                 if self.settings.set_bool("predict", "enabled", on) {
@@ -99,6 +100,18 @@ impl Host {
         tracing::info!(?setting, "设置");
         let config = self.settings.config().clone();
         match (setting, value) {
+            (Setting::InputMode, SettingValue::Index(index)) => {
+                if let Some(mode) = InputMode::ALL.get(index) {
+                    self.select_input_mode(*mode);
+                }
+                return;
+            }
+            (Setting::CapsLockBehavior, SettingValue::Index(index)) => {
+                if let Some(behavior) = CapsLockBehavior::ALL.get(index) {
+                    self.settings
+                        .set_value("shortcut", "caps_lock_behavior", behavior.key());
+                }
+            }
             (Setting::NewPhrase, _) => {
                 self.preferences.edit_phrase(&config, None);
                 return;

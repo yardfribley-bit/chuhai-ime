@@ -6,6 +6,7 @@ mod code;
 mod correction;
 mod custom;
 mod emoji;
+mod encounters;
 mod english;
 mod learning;
 mod lookup;
