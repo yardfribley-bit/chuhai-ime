@@ -4,6 +4,22 @@
 
 **先把输入做好，再帮助表达与学习。** 中文完成选词后，输入 `//` 触发英文翻译；查看预览，按回车确认替换。有空时主动打开“今日学词”，查看当天遇到的词和出现次数。
 
+## 下载安装包
+
+点击下表的 **直接下载** 即可获取安装文件，无需编译源码。
+
+| 平台 | 直接下载 | 系统要求与测试状态 |
+| --- | --- | --- |
+| Windows | [下载安装程序（.exe，约 99 MB）](https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-crossplatform/chuhai-0.1.5-dev-597b2da-windows-x86_64-setup.exe) | Windows 10 1809+，x64；编译与自动测试通过，待真机验收 |
+| Android | [下载安装包（.apk，约 15 MB）](https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-crossplatform/chuhai-ime-0.1.1-test-android.apk) | Android 8.0+，ARM64 / x86_64；已验证基本输入可用 |
+| macOS Intel | [下载安装包（.pkg，约 102 MB）](https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-build238/chuhai-ime-0.1.5-build238-macos-x86_64.pkg) | Intel Mac，build238 测试包；比当前源码旧，不包含后续三模式切换与次数统计改动 |
+
+Apple Silicon Mac 暂无预编译安装包，需自行编译。以上均为测试版：Windows 包未购买代码签名证书，Mac 包未公证，Android 使用测试签名。
+
+[Windows / Android 发布说明与校验和](https://github.com/yardfribley-bit/chuhai-ime/releases/tag/v0.1.5-dev-crossplatform) · [Mac 发布说明与校验和](https://github.com/yardfribley-bit/chuhai-ime/releases/tag/v0.1.5-dev-build238) · [全部版本](https://github.com/yardfribley-bit/chuhai-ime/releases)
+
+Windows 运行 `.exe` 安装后选择出海舰输入法；Android 安装 `.apk` 后，在系统键盘设置中启用并选择“出海舰”。翻译功能按需配置自己的接口和密钥，安装包不包含个人密钥。
+
 ## 快速使用（macOS）
 
 ### 1. 安装并选择出海舰
