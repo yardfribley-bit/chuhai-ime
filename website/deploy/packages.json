@@ -1,0 +1,20 @@
+[
+  {
+    "platform": "macos",
+    "filename": "chuhai-ime-0.1.5-build238-macos-x86_64.pkg",
+    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-build238/chuhai-ime-0.1.5-build238-macos-x86_64.pkg",
+    "sha256": "10917a55b4d697d40997b872fbcb090ddeb0ad6f2e25ce9c90b03b5ef89b2d70"
+  },
+  {
+    "platform": "windows",
+    "filename": "chuhai-0.1.5-dev-597b2da-windows-x86_64-setup.exe",
+    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-crossplatform/chuhai-0.1.5-dev-597b2da-windows-x86_64-setup.exe",
+    "sha256": "2d9246d3eed49aa36b3d6e08192bc158b9e82732ebe4df5bce0d585e8e549079"
+  },
+  {
+    "platform": "android",
+    "filename": "chuhai-ime-0.1.1-test-android.apk",
+    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-crossplatform/chuhai-ime-0.1.1-test-android.apk",
+    "sha256": "d192a59ad2c55d70ea39c02a2129dc1a898cd76cb498e88c34ca37810ce1349a"
+  }
+]
