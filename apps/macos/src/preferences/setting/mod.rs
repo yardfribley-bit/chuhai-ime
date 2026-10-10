@@ -196,6 +196,10 @@ pub enum Setting {
     /// 「云服务」页「测试连接」按钮。
     TestCloud,
 
+    CloudService,
+
+    LoadModels,
+
     /// 「关于」页「官网」按钮。
     OpenWebsite,
 
@@ -207,6 +211,8 @@ impl Setting {
     pub fn tag(self) -> NSInteger {
         match self {
             Self::InputMode => 58,
+            Self::CloudService => 61,
+            Self::LoadModels => 62,
             Self::CapsLockBehavior => 57,
             Self::LearningLanguage => 1,
             Self::PageSize => 2,
@@ -282,6 +288,8 @@ impl Setting {
             6 => Self::QuestionKey,
             41 => Self::QuestionMark,
             7 => Self::CloudEnabled,
+            61 => Self::CloudService,
+            62 => Self::LoadModels,
             8 => Self::BaseUrl,
             9 => Self::Model,
             10 => Self::ApiKey,

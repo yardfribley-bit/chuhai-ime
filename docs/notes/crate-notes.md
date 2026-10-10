@@ -324,3 +324,7 @@ Mac 中英文输入使用当前 `NSEvent.modifierFlags` 中的 Caps Lock / Shift
 ## Android 0.1.2-test/code 3：手机键盘
 
 平台层 keyboard 包使用纯 Java Layout 计算标准三行 QWERTY 和底部功能键；原生 Button 完整矩形接收触摸，内缩背景保留视觉间距，第二行边缘扩展触摸范围并校正文字位置。多指事件分发、无障碍点击沿用原生 View。KeyButton 提供弹出预览和生命周期清理的长按退格；Keyboard 管理符号、临时大写和锁定大写。InputMethodService 将按键交给原有内核，EditorInfo 决定回车动作；设置保存按键高度/预览并在下次输入视图显示时重载。不改变候选、纠错、词本或网络协议。五种屏宽、两种页面的触摸覆盖与标准位置检查通过；APK 构建/签名通过，待用户手机检验实际误触。
+
+## 模型目录与简化配置（2026-10-11）
+
+qingjian-predict 增加 CloudService、ModelEntry、ModelRequest：官方服务预设、名称/ID 搜索、后台 HTTPS /models 获取；拒绝重定向、限制 8 MiB 响应，排除仅输出图片的模型。Mac 原生组合框、Windows AutoSuggestBox 和 Android 模型搜索对话框共用同一服务/模型概念。Mac Caps Lock 同时接收 flagsChanged 与按键状态，轮询保留，避免只依赖 250 ms 定时器；鼠标点击仍提交旧组句。真实物理按键修复效果待用户确认。

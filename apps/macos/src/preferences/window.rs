@@ -291,6 +291,10 @@ impl PreferencesWindow {
     }
 
     /// 底部状态行临时显示一句提示（不是错误，灰字）；下次 `sync` 会被配置状态覆盖。
+    pub fn set_cloud_models(&self, models: &[qingjian_predict::ModelEntry]) {
+        self.cloud.set_models(models);
+    }
+
     pub fn set_status(&self, text: &str) {
         self.status
             .setTextColor(Some(&NSColor::secondaryLabelColor()));

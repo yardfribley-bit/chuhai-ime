@@ -162,6 +162,12 @@ pub struct Host {
     /// 进行中的云服务连通性测试（「云服务」页「测试连接」按钮）；没在测为 `None`。
     cloud_test: Option<ConnectionTest>,
 
+    cloud_test_config: Option<qingjian_predict::PredictConfig>,
+
+    model_request: Option<qingjian_predict::ModelRequest>,
+
+    cloud_models: Vec<qingjian_predict::ModelEntry>,
+
     /// 连通性测试的轮询定时器。
     cloud_test_monitor: CloudTestMonitor,
 

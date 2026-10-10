@@ -40,6 +40,30 @@ pub(crate) fn view(settings: &Settings, context: &mut ViewContext<Settings>) -> 
         CloudStatus::Ok(message) => message.clone(),
         CloudStatus::Failed(message) => format!("失败：{message}"),
     };
+    let provider = qingjian_predict::CloudService::for_url(&p.base_url);
+    let service_query = settings
+        .cloud_provider_query
+        .clone()
+        .unwrap_or_else(|| provider.label().to_owned());
+    let model_query = settings
+        .cloud_model_query
+        .clone()
+        .unwrap_or_else(|| p.model.clone());
+    let suggestions: Vec<String> = settings
+        .cloud_models
+        .iter()
+        .filter(|m| m.matches(&model_query))
+        .map(|m| m.label())
+        .collect();
+    let service_suggestions: Vec<String> = qingjian_predict::CloudService::ALL
+        .into_iter()
+        .filter(|s| {
+            s.label()
+                .to_lowercase()
+                .contains(&service_query.to_lowercase())
+        })
+        .map(|s| s.label().to_owned())
+        .collect();
     let rows = [
         field(
             "本地整句模型",
@@ -72,15 +96,40 @@ pub(crate) fn view(settings: &Settings, context: &mut ViewContext<Settings>) -> 
                 .on_toggled(context.callback(Message::CloudSentence)),
         ),
         field(
-            "接口地址",
+            "接入服务",
+            "输入 openrouter、deepseek，或选择自定义中转。选择服务后自动配置地址。",
+            AutoSuggestBox::new()
+                .text(service_query)
+                .items_source(service_suggestions)
+                .on_text_changed(context.callback(Message::CloudProviderQuery))
+                .on_suggestion_chosen(context.callback(Message::CloudProvider)),
+        ),
+        field(
+            "选择模型",
+            "按名称搜索并选择；DeepSeek 官方需先粘贴密钥，再获取列表。",
+            AutoSuggestBox::new()
+                .text(model_query)
+                .items_source(suggestions)
+                .on_text_changed(context.callback(Message::CloudModelQuery))
+                .on_suggestion_chosen(context.callback(Message::CloudModelSelected)),
+        ),
+        labeled(
             "",
+            Button::new()
+                .on_click(context.message(Message::LoadCloudModels))
+                .content("获取 / 刷新模型列表"),
+        ),
+        field(
+            "高级：中转地址",
+            "官方服务地址自动填写；自定义中转只需填写一次地址。更改地址后需重新粘贴密钥。",
             TextBox::new()
                 .text(p.base_url.clone())
+                .is_enabled(provider == qingjian_predict::CloudService::Custom)
                 .on_text_changed(context.callback(Message::CloudBaseUrl)),
         ),
         field(
-            "模型",
-            "",
+            "高级：模型 ID",
+            "列表不可用时可手动填写完整 ID。",
             TextBox::new()
                 .text(p.model.clone())
                 .on_text_changed(context.callback(Message::CloudModel)),
@@ -101,7 +150,7 @@ pub(crate) fn view(settings: &Settings, context: &mut ViewContext<Settings>) -> 
                 .children((
                     Button::new()
                         .on_click(context.message(Message::TestConnection))
-                        .content("测试连接"),
+                        .content("连接并启用"),
                     TextBlock::new().text(status),
                 )),
         ),

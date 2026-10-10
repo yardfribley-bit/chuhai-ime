@@ -6,7 +6,7 @@
 use objc2::rc::{Allocated, Retained};
 use objc2::runtime::{AnyObject, Sel};
 use objc2::{define_class, msg_send, sel};
-use objc2_app_kit::{NSEvent, NSEventModifierFlags, NSEventType, NSMenu};
+use objc2_app_kit::{NSEvent, NSEventMask, NSEventModifierFlags, NSEventType, NSMenu};
 use objc2_foundation::NSObjectProtocol;
 use objc2_input_method_kit::{IMKInputController, IMKServer};
 use qingjian_core::Candidate;
@@ -52,6 +52,11 @@ define_class!(
         /// Option+数字上屏候选的译文（Option 会把数字键变成 ¡™£ 这类字符，只能按键码认）；命令键按键码映射成原来的选择器；
         /// 其余按事件带的字符走文本路径。返回 true 表示已处理，系统不再把按键交给应用。
         // define_class! 会把返回类型转成 ObjC BOOL，方法体里不能用 `return`，逻辑放在下面的 inherent impl
+        #[unsafe(method(recognizedEvents:))]
+        fn recognized_events(&self, _sender: Option<&AnyObject>) -> usize {
+            (NSEventMask::KeyDown | NSEventMask::FlagsChanged | NSEventMask::LeftMouseDown | NSEventMask::RightMouseDown).bits() as usize
+        }
+
         #[unsafe(method(handleEvent:client:))]
         fn handle_event(&self, event: Option<&NSEvent>, client: Option<&AnyObject>) -> bool {
             match (event, client) {
@@ -193,9 +198,42 @@ impl QingjianInputController {
 
     /// 一个按键事件的分发：只管按下；Cmd / Ctrl 组合除 Cmd+左右外一律交给应用；命令键映射成选择器；其余按字符当文本。
     fn dispatch_event(&self, event: &NSEvent, client: TextClient<'_>) -> bool {
-        if event.r#type() != NSEventType::KeyDown || self.in_login_window() {
+        if self.in_login_window() {
             return false;
         }
+        if matches!(
+            event.r#type(),
+            NSEventType::LeftMouseDown | NSEventType::RightMouseDown
+        ) {
+            self.commit_raw(client);
+            return false;
+        }
+        if event.r#type() == NSEventType::FlagsChanged {
+            if event.keyCode() == 57 {
+                host::with(|h| {
+                    h.observe_caps_event(
+                        event
+                            .modifierFlags()
+                            .contains(NSEventModifierFlags::CapsLock),
+                    )
+                });
+                if host::with(|h| std::mem::take(&mut h.pending_input_mode)).unwrap_or(false) {
+                    self.commit_raw(client);
+                }
+                return true;
+            }
+            return false;
+        }
+        if event.r#type() != NSEventType::KeyDown {
+            return false;
+        }
+        host::with(|h| {
+            h.observe_caps_event(
+                event
+                    .modifierFlags()
+                    .contains(NSEventModifierFlags::CapsLock),
+            )
+        });
         if host::with(|h| std::mem::take(&mut h.pending_input_mode)).unwrap_or(false) {
             self.commit_raw(client);
         }

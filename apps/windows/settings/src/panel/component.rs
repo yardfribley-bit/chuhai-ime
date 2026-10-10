@@ -31,6 +31,9 @@ impl Component for Settings {
             path,
             page: "general".to_string(),
             cloud_status: CloudStatus::Idle,
+            cloud_models: Vec::new(),
+            cloud_model_query: None,
+            cloud_provider_query: None,
             recorder: Recorder::Idle,
             record_box: ElementRef::new(),
             notice: Notice::default(),
@@ -145,9 +148,100 @@ impl Component for Settings {
             // 云服务页
             Message::LocalModel(on) => self.save("model", "enabled", on),
             Message::CloudEnabled(on) => self.save("predict", "enabled", on),
-            Message::CloudApiKey(value) => self.save("predict", "api_key", value),
+            Message::CloudApiKey(value) => {
+                self.save("predict", "enabled", false);
+                self.save("predict", "api_key", value);
+            }
+            Message::CloudProviderQuery(query) => {
+                self.cloud_provider_query = Some(query.clone());
+                if qingjian_predict::CloudService::search(&query).is_some() {
+                    self.update(Message::CloudProvider(query), context);
+                }
+            }
+            Message::CloudProvider(label) => {
+                let Some(service) = qingjian_predict::CloudService::search(&label) else {
+                    return;
+                };
+                self.cloud_provider_query = None;
+                if service == qingjian_predict::CloudService::for_url(&self.config.predict.base_url)
+                {
+                    return;
+                }
+                self.save("predict", "enabled", false);
+                self.save("predict", "api_key", "");
+                self.save(
+                    "predict",
+                    "api_key_env",
+                    format!(
+                        "CHUHAI_{}_API_KEY",
+                        service
+                            .label()
+                            .chars()
+                            .filter(char::is_ascii_alphanumeric)
+                            .collect::<String>()
+                            .to_uppercase()
+                    ),
+                );
+                self.save("predict", "base_url", service.base_url().unwrap_or(""));
+                self.save("predict", "model", "");
+                self.cloud_models.clear();
+                self.cloud_model_query = None;
+                self.cloud_status = CloudStatus::Idle;
+                if service == qingjian_predict::CloudService::OpenRouter {
+                    self.update(Message::LoadCloudModels, context);
+                }
+            }
+            Message::CloudModelQuery(query) => self.cloud_model_query = Some(query),
+            Message::CloudModelSelected(label) => {
+                if let Some(model) = self
+                    .cloud_models
+                    .iter()
+                    .find(|m| m.label() == label)
+                    .map(|m| m.id.clone())
+                {
+                    self.cloud_model_query = None;
+                    self.save("predict", "model", model);
+                }
+            }
+            Message::LoadCloudModels => {
+                let config = self.config.predict.clone();
+                context.spawn_background(move |cancel| {
+                    let result = (|| {
+                        let request = qingjian_predict::ModelRequest::start(&config)?;
+                        loop {
+                            if cancel.is_cancelled() {
+                                return Err("已取消".into());
+                            }
+                            if let Some(result) = request.poll() {
+                                return result;
+                            }
+                            std::thread::sleep(std::time::Duration::from_millis(100));
+                        }
+                    })();
+                    Message::CloudModelsDone(config, result)
+                });
+            }
+            Message::CloudModelsDone(config, result) => {
+                if config != self.config.predict {
+                    return;
+                }
+                match result {
+                    Ok(models) => {
+                        self.cloud_models = models;
+                        self.cloud_status = CloudStatus::Ok("模型列表已加载，请搜索并选择".into());
+                    }
+                    Err(error) => self.cloud_status = CloudStatus::Failed(error),
+                }
+            }
             Message::CloudModel(value) => self.save("predict", "model", value),
-            Message::CloudBaseUrl(value) => self.save("predict", "base_url", value),
+            Message::CloudBaseUrl(value) => {
+                if value != self.config.predict.base_url {
+                    self.save("predict", "enabled", false);
+                    self.save("predict", "api_key", "");
+                    self.cloud_models.clear();
+                }
+                self.save("predict", "base_url", value);
+            }
             Message::CloudSlots(Some(value)) => {
                 let slots = (value.round() as i64).clamp(0, 9);
                 self.save("predict", "slots", slots);
@@ -160,10 +254,18 @@ impl Component for Settings {
                 self.cloud_status = CloudStatus::Testing;
                 let config = self.config.predict.clone();
                 context.spawn_background(move |cancel| {
-                    Message::CloudTestDone(cloud::run_test(&config, &cancel))
+                    let result = cloud::run_test(&config, &cancel);
+                    Message::CloudTestDone(config, result)
                 });
             }
-            Message::CloudTestDone(result) => {
+            Message::CloudTestDone(config, result) => {
+                if config != self.config.predict {
+                    self.cloud_status = CloudStatus::Failed("配置已变化，请重新连接".into());
+                    return;
+                }
+                if result.is_ok() {
+                    self.save("predict", "enabled", true);
+                }
                 self.cloud_status = match result {
                     Ok(message) => CloudStatus::Ok(message),
                     Err(message) => CloudStatus::Failed(message),

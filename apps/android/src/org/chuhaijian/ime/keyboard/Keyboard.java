@@ -56,7 +56,7 @@ public final class Keyboard extends ViewGroup {
             case "SPACE": return mode;
             case "MODE": return english?"英 / 中":"中 / 英";
             case "ENTER": return enter;
-            default: return !symbols && shift?value.toUpperCase(java.util.Locale.ROOT):value;
+            default: return !symbols && value.length()==1 && Character.isLetter(value.charAt(0))?value.toUpperCase(java.util.Locale.ROOT):value;
         }
     }
 
@@ -85,7 +85,7 @@ public final class Keyboard extends ViewGroup {
     @Override protected void onMeasure(int widthSpec,int heightSpec) {
         int width=MeasureSpec.getSize(widthSpec);
         boolean landscape=getResources().getConfiguration().orientation==Configuration.ORIENTATION_LANDSCAPE;
-        int row=getContext().getSharedPreferences("keyboard",Context.MODE_PRIVATE).getInt("key_height",58);
+        int row=getContext().getSharedPreferences("keyboard",Context.MODE_PRIVATE).getInt("key_height",62);
         row=Math.max(50,Math.min(70,row));
         setMeasuredDimension(width,dp((landscape?44:row)*4));
         keys=Layout.create(getMeasuredWidth(),getMeasuredHeight(),symbols);

@@ -11,10 +11,47 @@ use super::*;
 impl Host {
     /// 清空输入日志文件；开着的话重新打开继续记。
     /// 「测试连接」：用当前配置发一条最小请求，结果回到偏好设置窗口底部的状态行。
+    pub(super) fn start_model_list(&mut self) {
+        match qingjian_predict::ModelRequest::start(&self.settings.config().predict) {
+            Ok(request) => {
+                self.model_request = Some(request);
+                self.cloud_test_monitor.start();
+                self.preferences.set_status("正在获取模型列表…");
+            }
+            Err(error) => self.preferences.set_status(&error),
+        }
+    }
+
+    pub fn poll_model_list(&mut self) {
+        let Some(request) = self.model_request.as_ref() else {
+            return;
+        };
+        if request.base_url != self.settings.config().predict.base_url {
+            self.model_request = None;
+            return;
+        }
+        let Some(result) = request.poll() else {
+            return;
+        };
+        self.model_request = None;
+        match result {
+            Ok(models) => {
+                self.cloud_models = models;
+                self.preferences.set_cloud_models(&self.cloud_models);
+                self.preferences
+                    .set_status("模型已加载，请输入名称搜索或从下拉列表选择");
+            }
+            Err(error) => self
+                .preferences
+                .set_status(&format!("{error}；也可手动填写完整模型 ID")),
+        }
+    }
+
     pub(super) fn start_cloud_test(&mut self) {
         let config = self.settings.config().predict.clone();
         match ConnectionTest::start(&config) {
             Ok(test) => {
+                self.cloud_test_config = Some(config.clone());
                 self.cloud_test = Some(test);
                 self.cloud_test_monitor.start();
                 self.preferences.set_status(&format!(
@@ -33,8 +70,11 @@ impl Host {
 
     /// 轮询定时器每 0.2 秒来一次：结果到了就显示并停表；等太久也停。
     pub fn poll_cloud_test(&mut self) {
+        self.poll_model_list();
         let Some(test) = &self.cloud_test else {
-            self.cloud_test_monitor.stop();
+            if self.model_request.is_none() {
+                self.cloud_test_monitor.stop();
+            }
             return;
         };
         let Some(outcome) = test.poll() else {
@@ -48,12 +88,20 @@ impl Host {
         };
         self.cloud_test = None;
         self.cloud_test_monitor.stop();
+        if self.cloud_test_config.take().as_ref() != Some(&self.settings.config().predict) {
+            self.preferences.set_status("配置已变化，请重新连接");
+            return;
+        }
         match outcome {
-            Ok(report) => self.preferences.set_status(&format!(
-                "云服务连接正常：{} 在 {} ms 内回复",
-                report.model,
-                report.elapsed.as_millis()
-            )),
+            Ok(report) => {
+                self.settings.set_bool("predict", "enabled", true);
+                self.apply_config(false);
+                self.preferences.set_status(&format!(
+                    "云服务连接正常：{} 在 {} ms 内回复",
+                    report.model,
+                    report.elapsed.as_millis()
+                ));
+            }
             Err(error) => self.preferences.set_status(&format!(
                 "云服务连接失败：{}",
                 describe_predict_error(&error)

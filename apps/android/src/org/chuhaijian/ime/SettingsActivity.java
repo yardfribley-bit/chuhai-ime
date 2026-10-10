@@ -19,6 +19,7 @@ import org.json.JSONObject;
 public final class SettingsActivity extends Activity {
     private LinearLayout root;
     private NativeBridge nativeEngine;
+    private org.chuhaijian.ime.cloud.CloudSetup cloudSetup;
 
     public void onCreate(Bundle saved) {
         super.onCreate(saved);
@@ -28,8 +29,8 @@ public final class SettingsActivity extends Activity {
         button("选择输入法",() -> ((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showInputMethodPicker());
         android.content.SharedPreferences keyboard=getSharedPreferences("keyboard",MODE_PRIVATE);
         text("键盘设置",22);
-        TextView height=text("按键高度："+keyboard.getInt("key_height",58)+" dp",16);
-        SeekBar size=new SeekBar(this); size.setMax(20); size.setProgress(keyboard.getInt("key_height",58)-50); root.addView(size);
+        TextView height=text("按键高度："+keyboard.getInt("key_height",62)+" dp",16);
+        SeekBar size=new SeekBar(this); size.setMax(20); size.setProgress(keyboard.getInt("key_height",62)-50); root.addView(size);
         size.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar bar,int progress,boolean user) { height.setText("按键高度："+(50+progress)+" dp"); if(user) keyboard.edit().putInt("key_height",50+progress).apply(); }
             public void onStartTrackingTouch(SeekBar bar) {}
@@ -37,19 +38,10 @@ public final class SettingsActivity extends Activity {
         });
         CheckBox preview=new CheckBox(this); preview.setText("按下字母时显示放大预览"); preview.setChecked(keyboard.getBoolean("key_preview",true)); root.addView(preview);
         preview.setOnCheckedChangeListener((view,checked) -> keyboard.edit().putBoolean("key_preview",checked).apply());
-        text("设置即时保存；返回输入框后生效。点键盘左上角可选择五笔、拼音、英文；123 打开数字符号。",15);
-        android.content.SharedPreferences config=getSharedPreferences("cloud",MODE_PRIVATE);
-        text("整句云翻译",22); text("仅在你主动触发翻译时，发送当前中文段落给你配置的服务。密码框不翻译。接口费用由服务商收取。",15);
-        CheckBox enabled=new CheckBox(this); enabled.setText("启用云翻译"); enabled.setChecked(config.getBoolean("enabled",false)); root.addView(enabled);
-        EditText url=field("兼容接口地址，例如 https://服务商/v1",config.getString("url",""),false);
-        EditText model=field("模型名称",config.getString("model",""),false);
-        EditText key=field("API 密钥",config.getString("key",""),true);
+        text("设置即时保存；返回输入框后生效。点键盘左上角可选择五笔、拼音、英文；左下角中/英切换，旁边 123 打开数字符号。",15);
+        text("整句云翻译",22);
+        cloudSetup=new org.chuhaijian.ime.cloud.CloudSetup(this);root.addView(cloudSetup);
         TextView state=text("",15);
-        button("保存设置",() -> {
-            String endpoint=url.getText().toString().trim();
-            if(enabled.isChecked() && (!endpoint.startsWith("https://") || model.getText().toString().trim().isEmpty() || key.getText().toString().trim().isEmpty())) { state.setText("请填写 HTTPS 接口、模型和密钥"); return; }
-            config.edit().putBoolean("enabled",enabled.isChecked()).putString("url",endpoint).putString("model",model.getText().toString().trim()).putString("key",key.getText().toString().trim()).apply(); state.setText("已保存");
-        });
         button("今日学词",this::showWords);
         button("开源许可与数据来源",() -> {
             try(java.io.InputStream in=getAssets().open("NOTICE.txt")) {
@@ -77,5 +69,5 @@ public final class SettingsActivity extends Activity {
         } catch(Exception error) { text("词本读取失败："+error.getMessage(),15); }
     }
 
-    public void onDestroy() { if(nativeEngine!=null) nativeEngine.close(); super.onDestroy(); }
+    public void onDestroy() { if(cloudSetup!=null) cloudSetup.close(); if(nativeEngine!=null) nativeEngine.close(); super.onDestroy(); }
 }

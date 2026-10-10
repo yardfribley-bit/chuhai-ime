@@ -19,7 +19,7 @@ python3 apps/android/build.py
 
 数据目录包含 dict.qj、glossary-en.qj、wubi/wubi86.tsv，来源与许可需随包保留。当前脚本的 NDK 主机工具目录为 macOS darwin-x86_64；其他主机需要按 NDK 目录调整。
 
-APK 在 target/android/出海舰-0.1.2-test.apk。手机安装后到系统键盘设置启用“出海舰”，再切换输入法。验证拼音 nihao、五笔 wq、英文直输、切换应用、密码框、联网失败、取消、光标移动和今日学词。
+APK 在 target/android/出海舰-0.1.3.apk。手机安装后到系统键盘设置启用“出海舰”，再切换输入法。验证拼音 nihao、五笔 wq、英文直输、切换应用、密码框、联网失败、取消、光标移动和今日学词。
 
 ## 0.1.2 键盘调整
 
@@ -33,3 +33,15 @@ APK 在 target/android/出海舰-0.1.2-test.apk。手机安装后到系统键盘
 javac -d /tmp/chuhai-keyboard-test apps/android/src/org/chuhaijian/ime/keyboard/{Key,Layout}.java apps/android/tests/org/chuhaijian/ime/keyboard/LayoutTest.java
 java -cp /tmp/chuhai-keyboard-test org.chuhaijian.ime.keyboard.LayoutTest
 ```
+
+## 0.1.3 全键盘易用性调整
+
+保持标准 26 键位置，字母统一显示大写键帽（中文编码仍为小写），默认行高由 58 调到 62 dp；已手动设置的高度保留。缩小键帽之间的视觉空隙、增大字母显示，完整触摸边界不变。底行从左到右为中/英、123、逗号、大空格、句号、回车；空格占整行 40%。取消按钮只在翻译期间显示。
+
+纯 Java/UI 调整可以用 `python3 apps/android/build.py --reuse-native` 复用上次构建的两种 ABI 原生库；涉及 Rust 或 JNI 的修改必须完整构建。0.1.3 沿用本机测试签名和包名，可覆盖安装。该版本不包含新的拼音纠错算法，误触效果仍需手机实测。
+
+0.1.3 对外版本名不带 test 后缀，versionCode 5；沿用原有签名用于覆盖安装。
+
+## 0.1.4 模型配置
+
+选择 OpenRouter、DeepSeek 官方或自定义中转，按名称搜索并选择模型，粘贴该服务的密钥后连接并启用。官方地址自动填写；中转地址仅需填写一次。模型列表失败可重试或手动填写模型 ID。失败保留表单内容，配置变化后旧测试结果不会启用新配置。0.1.4（versionCode 6）沿用原包名和签名。

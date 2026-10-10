@@ -47,7 +47,16 @@ pub(crate) enum Message {
     CloudSlots(Option<f64>),
     CloudSentence(bool),
     TestConnection,
-    CloudTestDone(Result<String, String>),
+    CloudTestDone(qingjian_predict::PredictConfig, Result<String, String>),
+    CloudProviderQuery(String),
+    CloudProvider(String),
+    CloudModelQuery(String),
+    CloudModelSelected(String),
+    LoadCloudModels,
+    CloudModelsDone(
+        qingjian_predict::PredictConfig,
+        Result<Vec<qingjian_predict::ModelEntry>, String>,
+    ),
 
     // 快捷键页
     PageKeys(Option<usize>),

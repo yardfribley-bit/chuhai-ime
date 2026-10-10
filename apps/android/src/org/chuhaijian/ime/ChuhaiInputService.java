@@ -25,7 +25,7 @@ import org.json.JSONObject;
 /** Android 系统键盘；拼音和五笔的候选生成均由共用内核完成。 */
 public final class ChuhaiInputService extends InputMethodService {
     private Keyboard keyboard;
-    private Button modeButton;
+    private Button modeButton, cancelButton;
     private NativeBridge nativeEngine;
     private TextView status;
     private LinearLayout candidates;
@@ -61,7 +61,7 @@ public final class ChuhaiInputService extends InputMethodService {
         toolbar.addView(brand,new LinearLayout.LayoutParams(0,dp(38),1));
         Button settings=toolButton("设置"); settings.setOnClickListener(v -> startActivity(new Intent(this,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
         toolbar.addView(settings,new LinearLayout.LayoutParams(dp(64),dp(38)));
-        Button cancel=toolButton("取消"); cancel.setOnClickListener(v -> cancelTranslation()); toolbar.addView(cancel,new LinearLayout.LayoutParams(dp(56),dp(38)));
+        cancelButton=toolButton("取消"); cancelButton.setVisibility(View.GONE); cancelButton.setOnClickListener(v -> { cancelTranslation(); updateFrame(new JSONObject()); }); toolbar.addView(cancelButton,new LinearLayout.LayoutParams(dp(56),dp(38)));
         root.addView(toolbar);
         status=new TextView(this); status.setTextSize(14); status.setPadding(dp(12),0,dp(12),0); status.setMaxLines(2); root.addView(status);
         HorizontalScrollView scroll=new HorizontalScrollView(this); scroll.setHorizontalScrollBarEnabled(false);
@@ -181,6 +181,7 @@ public final class ChuhaiInputService extends InputMethodService {
             String endpoint=config.getString("url",""); if(!endpoint.startsWith("https://")) { showStatus("翻译接口需要 HTTPS"); return false; }
             source=job.getString("source"); original=source+"/"; originalCursor=extracted.startOffset+extracted.selectionStart; translationClient=connection;
             translated=null; terms=new JSONArray(); int token=++generation;
+            if(cancelButton!=null) cancelButton.setVisibility(View.VISIBLE);
             showStatus("翻译中… 取消保留原文");
             final String input=source, system=job.getString("system"), model=config.getString("model",""), key=config.getString("key","");
             network.execute(() -> translate(token,endpoint,model,key,input,system)); return true;
@@ -217,5 +218,5 @@ public final class ChuhaiInputService extends InputMethodService {
         cancelTranslation();
     }
 
-    private void cancelTranslation() { generation++; original=null; source=null; translated=null; terms=null; translationClient=null; if(status!=null) showStatus("出海舰"); }
+    private void cancelTranslation() { generation++; original=null; source=null; translated=null; terms=null; translationClient=null; if(cancelButton!=null) cancelButton.setVisibility(View.GONE); if(status!=null) showStatus("出海舰"); }
 }

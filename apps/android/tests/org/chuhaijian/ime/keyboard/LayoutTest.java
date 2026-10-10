@@ -13,6 +13,13 @@ public final class LayoutTest {
                 check(keys,width*.1f,87,"a"); check(keys,width*.2f,87,"s");
                 check(keys,width*.2f,145,"z"); check(keys,width*.92f,145,"DELETE");
                 check(keys,width*.5f,203,"SPACE");
+                check(keys,width*.06f,203,"MODE");
+                check(keys,width*.19f,203,"123");
+                check(keys,width*.30f,203,",");
+                check(keys,width*.80f,203,".");
+                check(keys,width*.94f,203,"ENTER");
+                Key space=keys.stream().filter(key -> key.value.equals("SPACE")).findFirst().get();
+                if(Math.abs((space.right-space.left)-width*.4f)>.01f) throw new AssertionError("空格宽度");
             }
         }
         System.out.println("键位与全区域触摸检查通过（5 种屏宽、字母/符号页）");

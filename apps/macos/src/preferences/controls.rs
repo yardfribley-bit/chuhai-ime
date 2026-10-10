@@ -234,3 +234,15 @@ fn editable(field: &NSTextField, setting: Setting, target: &PreferencesTarget) {
     }
     wire(field, setting, target);
 }
+
+/// 可输入服务商或搜索模型的原生组合框。
+pub(super) fn combo_field(
+    mtm: MainThreadMarker,
+    setting: Setting,
+    target: &PreferencesTarget,
+) -> Retained<objc2_app_kit::NSComboBox> {
+    let field = objc2_app_kit::NSComboBox::initWithFrame(mtm.alloc(), NSRect::ZERO);
+    editable(&field, setting, target);
+    field.setCompletes(true);
+    field
+}

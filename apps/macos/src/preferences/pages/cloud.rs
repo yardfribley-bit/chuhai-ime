@@ -2,13 +2,13 @@
 
 use objc2::MainThreadMarker;
 use objc2::rc::Retained;
-use objc2_app_kit::{NSButton, NSPopUpButton, NSSecureTextField, NSTextField};
+use objc2_app_kit::{NSButton, NSComboBox, NSPopUpButton, NSSecureTextField, NSTextField};
 use objc2_foundation::NSString;
 use qingjian_platform::Config;
 
 use crate::preferences::controls::{
-    button, checkbox, note, row_checkbox, row_control, row_popup, secure_field, select,
-    set_checked, text_field,
+    button, checkbox, combo_field, note, row_checkbox, row_control, row_popup, secure_field,
+    select, set_checked, text_field,
 };
 use crate::preferences::layout::{Layout, PAGE_PADDING, ROW_HEIGHT};
 use crate::preferences::setting::Setting;
@@ -31,7 +31,9 @@ pub struct CloudPage {
     base_url: Retained<NSTextField>,
 
     /// 模型名。
-    model: Retained<NSTextField>,
+    model: Retained<NSComboBox>,
+
+    provider: Retained<NSComboBox>,
 
     /// 密钥输入框，永远不回显已有值。
     api_key: Retained<NSSecureTextField>,
@@ -85,19 +87,32 @@ impl CloudPage {
             mtm,
             "云端词到了只补进第一页末尾这几格（比如 2 就是 8、9），前面的本地候选不动；没到就什么都不变，翻页后全是本地候选。",
         );
+        let provider = combo_field(mtm, Setting::CloudService, target);
+        for service in qingjian_predict::CloudService::ALL {
+            // SAFETY: NSString 提供控件要求的显示文本，控件保留对象。
+            unsafe {
+                provider.addItemWithObjectValue(&NSString::from_str(service.label()));
+            }
+        }
+        provider.setPlaceholderString(Some(&NSString::from_str("输入 openrouter 或 deepseek")));
+        row_control(layout, mtm, "接入服务", &provider);
+        let fetch = button(mtm, "获取 / 刷新模型列表", Setting::LoadModels, target);
+        layout.place(&fetch, PAGE_PADDING, 200.0, ROW_HEIGHT + 4.0);
+        layout.next_row(ROW_HEIGHT + 4.0);
         let base_url = text_field(mtm, Setting::BaseUrl, target);
-        row_control(layout, mtm, "接口地址", &base_url);
-        let model = text_field(mtm, Setting::Model, target);
+        row_control(layout, mtm, "中转地址", &base_url);
+        let model = combo_field(mtm, Setting::Model, target);
+        model.setPlaceholderString(Some(&NSString::from_str("搜索或选择模型；也可填完整 ID")));
         row_control(layout, mtm, "模型", &model);
         let api_key = secure_field(mtm, Setting::ApiKey, target);
         row_control(layout, mtm, "API 密钥", &api_key);
         note(
             layout,
             mtm,
-            "文本框按回车保存。密钥只保存在这台电脑上，不会随配置文件导出，也不显示已填的值。",
+            "选接入服务 → 获取并选择模型 → 粘贴密钥 → 连接并启用。DeepSeek 官方需先粘贴密钥获取列表；自定义中转填写一次地址。文本框回车确认。",
         );
-        let test = button(mtm, "测试连接", Setting::TestCloud, target);
-        layout.place(&test, PAGE_PADDING, 120.0, ROW_HEIGHT + 4.0);
+        let test = button(mtm, "连接并启用", Setting::TestCloud, target);
+        layout.place(&test, PAGE_PADDING, 160.0, ROW_HEIGHT + 4.0);
         layout.next_row(ROW_HEIGHT + 4.0);
         note(
             layout,
@@ -110,8 +125,20 @@ impl CloudPage {
             slots,
             base_url,
             model,
+            provider,
             api_key,
             test,
+        }
+    }
+
+    pub fn set_models(&self, models: &[qingjian_predict::ModelEntry]) {
+        self.model.removeAllItems();
+        for model in models {
+            // SAFETY: 模型显示项是有效 NSString，控件保留对象。
+            unsafe {
+                self.model
+                    .addItemWithObjectValue(&NSString::from_str(&model.label()));
+            }
         }
     }
 
@@ -123,10 +150,20 @@ impl CloudPage {
         set_checked(&self.enabled, config.predict.enabled);
         let cloud = config.predict.enabled;
         self.slots.setEnabled(cloud);
-        self.base_url.setEnabled(cloud);
-        self.model.setEnabled(cloud);
-        self.api_key.setEnabled(cloud);
-        self.test.setEnabled(cloud);
+        self.base_url.setEnabled(
+            qingjian_predict::CloudService::for_url(&config.predict.base_url)
+                == qingjian_predict::CloudService::Custom,
+        );
+        self.base_url.setHidden(
+            qingjian_predict::CloudService::for_url(&config.predict.base_url)
+                != qingjian_predict::CloudService::Custom,
+        );
+        self.provider.setStringValue(&NSString::from_str(
+            qingjian_predict::CloudService::for_url(&config.predict.base_url).label(),
+        ));
+        self.model.setEnabled(true);
+        self.api_key.setEnabled(true);
+        self.test.setEnabled(true);
         select(&self.slots, Some(config.predict.slots.min(MAX_CLOUD_SLOTS)));
         self.base_url
             .setStringValue(&NSString::from_str(&config.predict.base_url));

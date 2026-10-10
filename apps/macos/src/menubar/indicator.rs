@@ -146,6 +146,10 @@ impl ModeIndicator {
     /// 按当前 Caps Lock 状态刷新标题；收起时不动。
     pub fn caps_changed(&mut self) -> bool {
         let caps = modifiers::caps_lock_on();
+        self.observe_caps(caps)
+    }
+
+    pub fn observe_caps(&mut self, caps: bool) -> bool {
         std::mem::replace(&mut self.caps, caps) != caps
     }
 

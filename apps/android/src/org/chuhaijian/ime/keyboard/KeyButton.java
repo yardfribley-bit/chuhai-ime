@@ -29,7 +29,7 @@ final class KeyButton extends Button {
 
     KeyButton(Context context,String label,boolean repeating,boolean previewEnabled,Runnable action) {
         super(context); this.repeating=repeating; this.previewEnabled=previewEnabled; this.action=action;
-        setText(label); setAllCaps(false); setTextSize(22); setTextColor(Color.rgb(30,36,44));
+        setText(label); setAllCaps(false); setTextSize(24); setTextColor(Color.rgb(30,36,44));
         setTypeface(Typeface.create("sans-serif",Typeface.NORMAL));
         setMinWidth(0); setMinimumWidth(0); setMinHeight(0); setMinimumHeight(0);
         setPadding(0,0,0,0); setGravity(Gravity.CENTER); setIncludeFontPadding(false);
@@ -52,7 +52,7 @@ final class KeyButton extends Button {
 
     private InsetDrawable background(Key key,int color) {
         GradientDrawable fill=new GradientDrawable(); fill.setColor(color); fill.setCornerRadius(dp(6));
-        return new InsetDrawable(fill,Math.round(key.insetLeft)+dp(3),dp(4),Math.round(key.insetRight)+dp(3),dp(4));
+        return new InsetDrawable(fill,Math.round(key.insetLeft)+dp(2),dp(3),Math.round(key.insetRight)+dp(2),dp(3));
     }
 
     @Override public boolean onTouchEvent(MotionEvent event) {

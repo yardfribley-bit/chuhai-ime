@@ -40,6 +40,12 @@ pub(crate) struct Settings {
     /// 云服务「测试连接」的状态。
     cloud_status: CloudStatus,
 
+    cloud_models: Vec<qingjian_predict::ModelEntry>,
+
+    cloud_model_query: Option<String>,
+
+    cloud_provider_query: Option<String>,
+
     /// 「辅码」页的触发键录制状态。
     recorder: Recorder,
 

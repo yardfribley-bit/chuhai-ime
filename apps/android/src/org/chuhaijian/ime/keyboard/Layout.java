@@ -18,8 +18,8 @@ public final class Layout {
         add(keys,symbols?"ABC":"SHIFT",0,2*row,1.5f*unit,3*row,0,0);
         for(int i=0;i<7;i++) add(keys,third.substring(i,i+1),(i+1.5f)*unit,2*row,(i+2.5f)*unit,3*row,0,0);
         add(keys,"DELETE",8.5f*unit,2*row,width,3*row,0,0);
-        String[] values={symbols?"ABC":"123",",","MODE","SPACE",".","ENTER"};
-        float[] weights={1.4f,1f,1.2f,3.8f,1f,1.6f};
+        String[] values={"MODE",symbols?"ABC":"123",",","SPACE",".","ENTER"};
+        float[] weights={1.25f,1.25f,1f,4f,1f,1.5f};
         float x=0;
         for(int i=0;i<values.length;i++) { float next=i==values.length-1?width:x+weights[i]*unit; add(keys,values[i],x,3*row,next,height,0,0); x=next; }
         return keys;

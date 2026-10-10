@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """用官方 SDK/NDK 构建可安装测试 APK；不依赖额外的 Gradle 服务。"""
+import argparse
 import os
 from pathlib import Path
 import shutil
@@ -10,7 +11,10 @@ ROOT = Path(__file__).resolve().parents[2]
 APP = ROOT / "apps/android"
 OUT = ROOT / "target/android"
 SDK = Path(os.environ["ANDROID_SDK_ROOT"])
-NDK = Path(os.environ["ANDROID_NDK_HOME"])
+parser = argparse.ArgumentParser()
+parser.add_argument("--reuse-native", action="store_true", help="仅修改 Java/UI 时复用本机已构建的原生库")
+args = parser.parse_args()
+NDK = Path(os.environ["ANDROID_NDK_HOME"]) if not args.reuse_native else None
 JAVA = Path(os.environ["JAVA_HOME"]) / "bin"
 TOOLS = SDK / "build-tools/35.0.0"
 ANDROID_JAR = SDK / "platforms/android-34/android.jar"
@@ -28,22 +32,27 @@ for source, name in [(DATA / "dict.qj", "dict.qj"), (DATA / "glossary-en.qj", "g
     shutil.copy2(source, assets / name)
 (assets / "NOTICE.txt").write_text("出海舰基于 Qingjian 0.1.4 修改，https://github.com/qingjian-team/qingjian\n源码按 GPL-3.0-or-later 开放。保留原作者及数据来源声明。\n" + (ROOT / "assets/wubi/README.md").read_text() + "\n" + (ROOT / "assets/sample/README.md").read_text())
 native = OUT / "lib"
-toolchain = NDK / "toolchains/llvm/prebuilt/darwin-x86_64/bin"
-for target, abi, compiler in [("aarch64-linux-android", "arm64-v8a", "aarch64-linux-android26-clang"), ("x86_64-linux-android", "x86_64", "x86_64-linux-android26-clang")]:
-    environment = os.environ.copy()
-    environment[f"CARGO_TARGET_{target.upper().replace('-', '_')}_LINKER"] = str(toolchain / compiler)
-    environment[f"CC_{target.replace('-', '_')}"] = str(toolchain / compiler)
-    run("cargo", "build", "-p", "chuhai-android-native", "--release", "--locked", "--target", target, env=environment)
-    directory = native / abi
-    directory.mkdir(parents=True, exist_ok=True)
-    run(toolchain / compiler, "-shared", "-fPIC", "-O2", "-Wl,-z,max-page-size=16384", APP / "native/bridge.c", ROOT / f"target/{target}/release/libchuhai_android_native.a", "-ldl", "-llog", "-lm", "-o", directory / "libchuhai.so")
+if args.reuse_native:
+    for abi in ("arm64-v8a", "x86_64"):
+        if not (native / abi / "libchuhai.so").is_file():
+            raise SystemExit(f"缺少 {abi} 原生库，请先执行完整构建")
+else:
+    toolchain = NDK / "toolchains/llvm/prebuilt/darwin-x86_64/bin"
+    for target, abi, compiler in [("aarch64-linux-android", "arm64-v8a", "aarch64-linux-android26-clang"), ("x86_64-linux-android", "x86_64", "x86_64-linux-android26-clang")]:
+        environment = os.environ.copy()
+        environment[f"CARGO_TARGET_{target.upper().replace('-', '_')}_LINKER"] = str(toolchain / compiler)
+        environment[f"CC_{target.replace('-', '_')}"] = str(toolchain / compiler)
+        run("cargo", "build", "-p", "chuhai-android-native", "--release", "--locked", "--target", target, env=environment)
+        directory = native / abi
+        directory.mkdir(parents=True, exist_ok=True)
+        run(toolchain / compiler, "-shared", "-fPIC", "-O2", "-Wl,-z,max-page-size=16384", APP / "native/bridge.c", ROOT / f"target/{target}/release/libchuhai_android_native.a", "-ldl", "-llog", "-lm", "-o", directory / "libchuhai.so")
 
 resources = OUT / "resources.zip"
 run(TOOLS / "aapt2", "compile", "--dir", APP / "res", "-o", resources)
 generated = OUT / "generated"
 generated.mkdir(exist_ok=True)
 unsigned = OUT / "unsigned.apk"
-run(TOOLS / "aapt2", "link", "-o", unsigned, "--manifest", APP / "AndroidManifest.xml", "-I", ANDROID_JAR, "--min-sdk-version", "26", "--target-sdk-version", "35", "--version-code", "3", "--version-name", "0.1.2-test", "--java", generated, "-A", assets, resources)
+run(TOOLS / "aapt2", "link", "-o", unsigned, "--manifest", APP / "AndroidManifest.xml", "-I", ANDROID_JAR, "--min-sdk-version", "26", "--target-sdk-version", "35", "--version-code", "6", "--version-name", "0.1.4", "--java", generated, "-A", assets, resources)
 classes = OUT / "classes"
 classes.mkdir(exist_ok=True)
 sources = list((APP / "src").rglob("*.java")) + list(generated.rglob("*.java"))
@@ -60,7 +69,7 @@ run(TOOLS / "zipalign", "-f", "-P", "16", "4", unsigned, aligned)
 key = OUT / "test-signing.jks"
 if not key.exists():
     run(JAVA / "keytool", "-genkeypair", "-keystore", key, "-storepass", "android", "-keypass", "android", "-alias", "androiddebugkey", "-dname", "CN=Chuhai Local Test", "-keyalg", "RSA", "-validity", "3650")
-apk = OUT / "出海舰-0.1.2-test.apk"
+apk = OUT / "出海舰-0.1.4.apk"
 run(TOOLS / "apksigner", "sign", "--ks", key, "--ks-pass", "pass:android", "--key-pass", "pass:android", "--out", apk, aligned)
 run(TOOLS / "apksigner", "verify", "--verbose", apk)
 print(apk)
