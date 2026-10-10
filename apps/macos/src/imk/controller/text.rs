@@ -2,23 +2,33 @@
 
 use super::{MAX_TRANSLATE_CHARS, QingjianInputController};
 use crate::host;
-use crate::imk::{TextClient, modifiers, secure_input};
+use crate::imk::{TextClient, secure_input};
+use objc2_app_kit::NSEventModifierFlags;
 use qingjian_core::QUESTION_PREFIX;
 
 impl QingjianInputController {
-    pub(super) fn handle_text(&self, text: &str, client: TextClient<'_>) -> bool {
+    pub(super) fn handle_text(
+        &self,
+        text: &str,
+        client: TextClient<'_>,
+        flags: NSEventModifierFlags,
+    ) -> bool {
         tracing::debug!(%text, "inputText");
         self.note_application(&client);
         let mut composing = host::with(|h| !h.engine.composition().is_empty()).unwrap_or(false);
-        let english = modifiers::caps_lock_on();
+        // 使用当前按键携带的状态，不能用稍后查询的全局修饰键状态代替。
+        let english = flags.contains(NSEventModifierFlags::CapsLock);
         // 终端、编辑器这类应用（`[apps] english_candidates_off`）里英文模式是纯直通
         let english_candidates = english
             && host::with(|h| h.english_candidates_in(client.bundle_identifier().as_deref()))
                 .unwrap_or(false);
-        // 英文模式组词中 Caps Lock 灭了（或开关关了）：敲的字母先原样上屏，别把它们当拼音
+        // 切换输入语言时先结束旧缓冲区，避免把中文编码与英文单词混成一个候选。
         if composing
-            && !english_candidates
-            && host::with(|h| h.engine.english_mode()).unwrap_or(false)
+            && ((english
+                && host::with(|h| !h.engine.english_mode() && !h.engine.question_mode())
+                    .unwrap_or(false))
+                || (!english_candidates
+                    && host::with(|h| h.engine.english_mode()).unwrap_or(false)))
         {
             self.commit_raw(client);
             composing = false;
@@ -94,7 +104,7 @@ impl QingjianInputController {
         // Caps Lock 亮着 = 英文模式：不组句、不转标点，字母默认小写、按住 Shift 才大写
         if english && !question {
             // Caps Lock 亮着时 macOS 不管按没按 Shift 送来的都是大写，只能读 Shift 状态：按着才大写
-            let letter = if modifiers::shift_down() {
+            let letter = if flags.contains(NSEventModifierFlags::Shift) {
                 c.to_ascii_uppercase()
             } else {
                 c.to_ascii_lowercase()
@@ -188,7 +198,7 @@ impl QingjianInputController {
             if c == ' ' {
                 return true;
             }
-            return self.handle_text(text, client);
+            return self.handle_text(text, client, flags);
         }
         // 按住 Shift 打的大写字母：缺省是临时打英文，先把拼音原样上屏，再把字母交给应用；
         // `[general] shift_letter = "compose"` 时进缓冲区（Core 按小写匹配、原样上屏时还原大写）

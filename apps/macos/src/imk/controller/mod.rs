@@ -279,7 +279,7 @@ impl QingjianInputController {
             return false;
         }
         match event.characters() {
-            Some(text) if !text.is_empty() => self.handle_text(&text.to_string(), client),
+            Some(text) if !text.is_empty() => self.handle_text(&text.to_string(), client, flags),
             _ => false,
         }
     }

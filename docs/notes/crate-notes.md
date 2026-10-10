@@ -314,3 +314,5 @@ Windows IPC v8 的 RequestSelection 增加 paragraph 标记，TSF 通过异步�
 
 
 出海舰 macOS 使用指南：`preferences/pages/guide.rs` 构建首个原生标签页；菜单 `OpenUsageGuide`（tag 6）直接选择该页。云服务页同时显示 `//` 触发、Enter 接受、Esc 取消的提示。用户说明同步 `docs/user/getting-started/quick-start.md`。
+
+Mac 中英文输入使用当前 `NSEvent.modifierFlags` 中的 Caps Lock / Shift 标志；全局修饰键查询仅用于无事件的显示路径。语言切换时旧编码原样上屏，下一字母进入新语言缓冲区。
