@@ -6,7 +6,7 @@
 
 安装包与页面分开部署：页面位于 `/var/www/chuhai-ime/current`，安装包位于 `/var/www/chuhai-ime/downloads`，下载前按发布清单核验 SHA256。只发布 index.html 与 assets，不发布部署脚本或 Git 工作目录。Nginx 独立虚拟主机模板见 deploy/nginx-http.conf；上线前 nginx -t，DNS 指向新服务器后签发 www.cyberstroll.top 的 HTTPS 证书。
 
-Mac 当前附件为 build238，早于三模式与每日次数统计改动；Windows 已通过云构建与自动测试，待真机验收；Android 用户确认基本输入可用。更新版本时同时修改首页文案、下载文件名与校验和，不使用 GitHub 临时签名地址。
+Mac 当前附件为 0.1.5 build241；Windows 为 0.1.5；Android 为 0.1.4。三端支持按服务获取和搜索模型列表，Mac 补充 Caps Lock 事件处理，实体键盘切换仍待用户验证。更新版本时同时修改首页文案、下载文件名与校验和，不使用 GitHub 临时签名地址。
 
 ## 已部署状态（2026-10-10）
 
@@ -15,3 +15,9 @@ Mac 当前附件为 build238，早于三模式与每日次数统计改动；Wind
 证书名称为 `chuhai-www.cyberstroll.top`；维护时显式指定 `--cert-name`，避免覆盖服务器其他证书。续期检查：`sudo certbot renew --cert-name chuhai-www.cyberstroll.top --dry-run --no-random-sleep-on-renew`。SSH 密码、DNS 密钥和模型密钥不得写入仓库。
 
 2026-10-11：Android 更新至 0.1.2-test（标准键位、放大预览、长按退格、可调高度）；沿用旧版测试签名，实际手感待用户验收。固定下载信息见 packages.json。
+
+2026-10-11：Android 更新至 0.1.3-test（26 键大键帽、默认 62 dp 行高、左下角中英切换、40% 宽空格）；官网直接托管 APK，同包名同测试签名可覆盖安装，实际误触改善待手机实测。
+
+2026-10-11：按用户要求，官网 Android 下载和 APK 内版本名统一为 0.1.3（versionCode 5），文件 chuhai-ime-0.1.3-android.apk；沿用既有签名。已上传并核验服务器 SHA256。
+
+2026-10-11：统一更新三端模型配置入口。Mac 0.1.5 build241、Windows 0.1.5、Android 0.1.4 使用官网固定下载地址；外部版本名称不带“测试版”。哈希以 deploy/packages.json 为准。

@@ -1,20 +1,20 @@
 [
   {
     "platform": "macos",
-    "filename": "chuhai-ime-0.1.5-build238-macos-x86_64.pkg",
-    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-build238/chuhai-ime-0.1.5-build238-macos-x86_64.pkg",
-    "sha256": "10917a55b4d697d40997b872fbcb090ddeb0ad6f2e25ce9c90b03b5ef89b2d70"
-  },
-  {
-    "platform": "windows",
-    "filename": "chuhai-0.1.5-dev-597b2da-windows-x86_64-setup.exe",
-    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-crossplatform/chuhai-0.1.5-dev-597b2da-windows-x86_64-setup.exe",
-    "sha256": "2d9246d3eed49aa36b3d6e08192bc158b9e82732ebe4df5bce0d585e8e549079"
+    "filename": "chuhai-ime-0.1.5-build241-macos-x86_64.pkg",
+    "url": "https://www.cyberstroll.top/downloads/chuhai-ime-0.1.5-build241-macos-x86_64.pkg",
+    "sha256": "42ca5fccf87fa2c0d16f0a5e2f77881e3c067c781b34bea96c04b9a4ae11f348"
   },
   {
     "platform": "android",
-    "filename": "chuhai-ime-0.1.2-test-android.apk",
-    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/android-v0.1.2-test/chuhai-ime-0.1.2-test-android.apk",
-    "sha256": "8174ebda3f85f6d369c064287640d834d976a790ceec0c4b4eae95e0d6f63114"
+    "filename": "chuhai-ime-0.1.4-android.apk",
+    "url": "https://www.cyberstroll.top/downloads/chuhai-ime-0.1.4-android.apk",
+    "sha256": "efee7d76ab5f0974a48781ebd0c58c8bf03234e9f9d330db61e6abffaa07f85e"
+  },
+  {
+    "platform": "windows",
+    "filename": "chuhai-ime-0.1.5-windows-x86_64-setup.exe",
+    "url": "https://www.cyberstroll.top/downloads/chuhai-ime-0.1.5-windows-x86_64-setup.exe",
+    "sha256": "2c022c1ad788047bfa024c856f8f03557821a7ed8ee9d4287b9c996c7894bbd6"
   }
 ]
