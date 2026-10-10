@@ -135,7 +135,7 @@ pub(crate) fn view(settings: &Settings, context: &mut ViewContext<Settings>) -> 
                 .on_toggled(context.callback(Message::EnglishFullWidthPunctuation)),
         ),
         field(
-            "英文模式（Caps Lock）也给候选",
+            "英文补全候选",
             "Tab 或方向键选词；空格、回车、标点仍原样上屏敲的字母，不选词时与直接打字一样。",
             ToggleSwitch::new()
                 .is_on(g.english_candidates)

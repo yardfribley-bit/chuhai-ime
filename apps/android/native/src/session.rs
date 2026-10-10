@@ -39,8 +39,14 @@ impl Session {
     }
 
     fn flush_words(&mut self) -> Result<(), String> {
-        self.book
-            .record_encounters(&self.engine.take_encountered_terms());
+        let encounters = self.engine.take_encountered_terms();
+        if encounters.is_empty() {
+            return Ok(());
+        }
+        // 设置页和键盘各有会话，完成输入时先重新读取，避免覆盖刚标记的掌握状态。
+        self.book = TranslationBook::open(self.data_dir.join("translation-words.json"))
+            .map_err(|e| e.to_string())?;
+        self.book.record_encounters(&encounters);
         self.book.save().map_err(|e| e.to_string())
     }
 
@@ -150,8 +156,7 @@ impl Session {
             "frame" => {}
             _ => return Err("unknown operation".into()),
         }
-        self.book
-            .record_encounters(&self.engine.take_encountered_terms());
+        self.flush_words()?;
         self.candidates = match self.engine.query() {
             Ok(mut query) => {
                 self.engine.annotate(&mut query.candidates);
