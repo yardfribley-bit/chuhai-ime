@@ -105,14 +105,17 @@ fn read_selection(
 ) -> (String, ScreenRect) {
     shared.set_translation_range(None);
     let Some(range) = selection_range(context, ec) else {
+        log("翻译读取失败：应用未提供选区范围");
         return (String::new(), mouse_screen_rect());
     };
     let rect = anchor_rect(context, ec, &range);
     if super::surrounding::private_input(context, ec, &range) {
+        log("翻译读取跳过：私密输入范围");
         return (String::new(), rect);
     }
     if paragraph {
         if !unsafe { range.IsEmpty(ec) }.is_ok_and(|empty| empty.as_bool()) {
+            log("段落翻译跳过：插入点不是空选区");
             return (String::new(), rect);
         }
         let mut shifted = 0;
@@ -129,6 +132,11 @@ fn read_selection(
             return (String::new(), rect);
         }
         let before = range_text(&range, ec);
+        log(&format!(
+            "段落翻译读取：shifted={shifted} units={} slash={}",
+            before.encode_utf16().count(),
+            before.ends_with('/')
+        ));
         let Some((source, length)) = qingjian_core::translation_trigger::paragraph_before_slash(
             &before,
             shifted <= -(MAX_TRANSLATE_CHARS as i32),
