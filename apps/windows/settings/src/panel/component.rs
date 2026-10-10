@@ -7,8 +7,8 @@ use qingjian_platform::{
 use windows_reactor::{
     Component, ComponentContext, ElementRef, KeyedView, NavigationView,
     NavigationViewBackButtonVisible, NavigationViewItem, NavigationViewItemSlot,
-    NavigationViewPaneDisplayMode, NavigationViewSlot, SlotView, Symbol, SymbolIcon, View,
-    ViewContext,
+    NavigationViewPaneDisplayMode, NavigationViewSlot, SlotView, SlotsControl, Symbol, SymbolIcon,
+    View, ViewContext,
 };
 
 use super::cloud_status::CloudStatus;

@@ -14,6 +14,7 @@ path = "src/main.rs"
 qingjian-platform.workspace = true
 qingjian-predict.workspace = true
 toml_edit.workspace = true
+tracing.workspace = true
 
 # UI 本体只在 Windows 编
 [target."cfg(windows)".dependencies]

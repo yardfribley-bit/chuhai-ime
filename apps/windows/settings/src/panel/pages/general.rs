@@ -2,8 +2,8 @@
 
 use qingjian_platform::{InputMode, MAX_PAGE_SIZE, Scheme, ShiftLetter, SwitchKey};
 use windows_reactor::{
-    Callback, CheckBox, ComboBox, NumberBox, Orientation, StackPanel, ToggleSwitch, View,
-    ViewContext,
+    Callback, CheckBox, ChildrenControl, ComboBox, ContentControl, NumberBox, Orientation,
+    StackPanel, ToggleSwitch, View, ViewContext,
 };
 
 use crate::panel::controls::{feedback, field, index_of, page};

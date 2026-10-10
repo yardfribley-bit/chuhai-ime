@@ -95,7 +95,7 @@ pub(crate) fn view(settings: &Settings, context: &mut ViewContext<Settings>) -> 
             .font_weight(FontWeight::SEMI_BOLD)
             .into(),
         note(&since_line(&usage)),
-        Button::new().content("今日学词…").on_click(context.message(Message::OpenTodayWords)).into(),
+        Button::new().on_click(context.message(Message::OpenTodayWords)).content("今日学词…"),
         note("数的是上屏的文字：选一个词算一个中文词，整句按词切开数；英文候选、回车原样上屏的英文词与英文译词算英文词。只在这台电脑上数，与输入日志无关。"),
         TextBlock::new()
             .text(format!(

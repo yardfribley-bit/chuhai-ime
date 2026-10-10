@@ -2914,6 +2914,7 @@ dependencies = [
  "qingjian-update",
  "rfd",
  "toml_edit",
+ "tracing",
  "windows",
  "windows-reactor",
  "windows-reactor-setup",
