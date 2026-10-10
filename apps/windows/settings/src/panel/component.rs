@@ -199,7 +199,6 @@ impl Component for Settings {
                     .find(|m| m.label() == label)
                     .map(|m| m.id.clone())
                 {
-                    self.cloud_model_query = None;
                     self.save("predict", "model", model);
                 }
             }

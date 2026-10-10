@@ -328,3 +328,5 @@ Mac 中英文输入使用当前 `NSEvent.modifierFlags` 中的 Caps Lock / Shift
 ## 模型目录与简化配置（2026-10-11）
 
 qingjian-predict 增加 CloudService、ModelEntry、ModelRequest：官方服务预设、名称/ID 搜索、后台 HTTPS /models 获取；拒绝重定向、限制 8 MiB 响应，排除仅输出图片的模型。Mac 原生组合框、Windows AutoSuggestBox 和 Android 模型搜索对话框共用同一服务/模型概念。Mac Caps Lock 同时接收 flagsChanged 与按键状态，轮询保留，避免只依赖 250 ms 定时器；鼠标点击仍提交旧组句。真实物理按键修复效果待用户确认。
+
+Windows 云服务页使用独立 TextBox 搜索与 ComboBox 选择服务、模型，控件宽 360 DIP。模型选择后保留搜索条件，避免选中事件期间重建原生 AutoSuggestBox 弹层导致 Microsoft.ui.xaml.dll 访问异常。

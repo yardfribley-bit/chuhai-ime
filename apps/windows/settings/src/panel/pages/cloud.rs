@@ -1,7 +1,10 @@
 //! 「云服务」页：本地整句模型开关（`[model]`）、`[predict]` 各项与「测试连接」（后台线程跑）。
 
 use qingjian_predict::{ConnectionTest, PredictConfig};
-use windows_reactor::*;
+use windows_reactor::{
+    Button, CancellationToken, ChildrenControl, ComboBox, ContentControl, LayoutControl, NumberBox,
+    Orientation, PasswordBox, StackPanel, TextBlock, TextBox, ToggleSwitch, View, ViewContext,
+};
 
 use crate::panel::cloud_status::CloudStatus;
 use crate::panel::controls::{field, labeled, note, page};
@@ -98,20 +101,56 @@ pub(crate) fn view(settings: &Settings, context: &mut ViewContext<Settings>) -> 
         field(
             "接入服务",
             "输入 openrouter、deepseek，或选择自定义中转。选择服务后自动配置地址。",
-            AutoSuggestBox::new()
-                .text(service_query)
-                .items_source(service_suggestions)
-                .on_text_changed(context.callback(Message::CloudProviderQuery))
-                .on_suggestion_chosen(context.callback(Message::CloudProvider)),
+            StackPanel::new().spacing(8.0).children((
+                TextBox::new()
+                    .width(360.0)
+                    .text(service_query)
+                    .on_text_changed(context.callback(Message::CloudProviderQuery)),
+                ComboBox::new()
+                    .width(360.0)
+                    .items_source(service_suggestions.clone())
+                    .selected_index(
+                        service_suggestions
+                            .iter()
+                            .position(|s| s == provider.label()),
+                    )
+                    .on_selection_changed(context.callback(move |index: Option<usize>| {
+                        Message::CloudProvider(
+                            index
+                                .and_then(|i| service_suggestions.get(i))
+                                .cloned()
+                                .unwrap_or_default(),
+                        )
+                    })),
+            )),
         ),
         field(
             "选择模型",
             "按名称搜索并选择；DeepSeek 官方需先粘贴密钥，再获取列表。",
-            AutoSuggestBox::new()
-                .text(model_query)
-                .items_source(suggestions)
-                .on_text_changed(context.callback(Message::CloudModelQuery))
-                .on_suggestion_chosen(context.callback(Message::CloudModelSelected)),
+            StackPanel::new().spacing(8.0).children((
+                TextBox::new()
+                    .width(360.0)
+                    .text(model_query)
+                    .on_text_changed(context.callback(Message::CloudModelQuery)),
+                ComboBox::new()
+                    .width(360.0)
+                    .items_source(suggestions.clone())
+                    .selected_index(
+                        settings
+                            .cloud_models
+                            .iter()
+                            .find(|m| m.id == p.model)
+                            .and_then(|m| suggestions.iter().position(|label| *label == m.label())),
+                    )
+                    .on_selection_changed(context.callback(move |index: Option<usize>| {
+                        Message::CloudModelSelected(
+                            index
+                                .and_then(|i| suggestions.get(i))
+                                .cloned()
+                                .unwrap_or_default(),
+                        )
+                    })),
+            )),
         ),
         labeled(
             "",
