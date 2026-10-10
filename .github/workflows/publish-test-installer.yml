@@ -1,0 +1,30 @@
+name: Publish verified Windows test installer
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful Windows test installer run
+        required: true
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify successful build and publish existing release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD_RUN: ${{ inputs.run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$BUILD_RUN" =~ ^[0-9]+$ ]]
+          gh run view "$BUILD_RUN" --json conclusion,workflowName > run.json
+          python3 -c 'import json; r=json.load(open("run.json")); assert r["conclusion"] == "success" and r["workflowName"] == "Windows test installer"'
+          gh run download "$BUILD_RUN" --name chuhai-windows-x86_64-test --dir windows
+          cd windows
+          sed -i '1s/^\xEF\xBB\xBF//' SHA256SUMS
+          sha256sum -c SHA256SUMS
+          mv SHA256SUMS SHA256SUMS-windows
+          gh release upload v0.1.5-dev-crossplatform ./*.exe SHA256SUMS-windows --clobber
