@@ -13,3 +13,5 @@ Mac 当前附件为 build238，早于三模式与每日次数统计改动；Wind
 用户指定 Ubuntu 服务器 165.154.254.180，页面版本 24c6525，Nginx 配置 `/etc/nginx/conf.d/chuhai-ime.conf`。已验证三个附件的 SHA256、HTTP 200 与 Range 206；Windows 魔数 MZ 正确。原有 AgentReins 虚拟主机保持原配置。域名 www 的单条 A 记录已通过火山引擎 API 更新为 165.154.254.180，TTL 300 秒。独立 Let’s Encrypt 证书已签发并部署，HTTP 自动跳转 HTTPS，证书到期日 2027-01-08，Certbot 自动续期定时器已启用。仅修改 www，不修改根域及其他子域。安装包固定源与哈希见 deploy/packages.json。
 
 证书名称为 `chuhai-www.cyberstroll.top`；维护时显式指定 `--cert-name`，避免覆盖服务器其他证书。续期检查：`sudo certbot renew --cert-name chuhai-www.cyberstroll.top --dry-run --no-random-sleep-on-renew`。SSH 密码、DNS 密钥和模型密钥不得写入仓库。
+
+2026-10-11：Android 更新至 0.1.2-test（标准键位、放大预览、长按退格、可调高度）；沿用旧版测试签名，实际手感待用户验收。固定下载信息见 packages.json。

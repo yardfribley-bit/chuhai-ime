@@ -12,6 +12,8 @@ import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.PopupMenu;
+import org.chuhaijian.ime.keyboard.Keyboard;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -22,6 +24,8 @@ import org.json.JSONObject;
 
 /** Android 系统键盘；拼音和五笔的候选生成均由共用内核完成。 */
 public final class ChuhaiInputService extends InputMethodService {
+    private Keyboard keyboard;
+    private Button modeButton;
     private NativeBridge nativeEngine;
     private TextView status;
     private LinearLayout candidates;
@@ -42,39 +46,58 @@ public final class ChuhaiInputService extends InputMethodService {
     }
 
     public View onCreateInputView() {
-        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL);
-        status = new TextView(this); status.setTextSize(17); status.setPadding(12,8,12,8); root.addView(status);
-        LinearLayout modes = new LinearLayout(this);
-        addKey(modes, "五笔", () -> selectMode(0)); addKey(modes, "拼音", () -> selectMode(1)); addKey(modes, "英文", () -> selectMode(2)); root.addView(modes);
-        HorizontalScrollView scroll = new HorizontalScrollView(this);
-        candidates = new LinearLayout(this); scroll.addView(candidates); root.addView(scroll); scroll.setOnScrollChangeListener((view,x,y,oldX,oldY) -> noteVisibleHints());
-        String[] rows = {"1234567890", "qwertyuiop", "asdfghjkl", "zxcvbnm"};
-        for (String row : rows) {
-            LinearLayout line = new LinearLayout(this);
-            for (char letter : row.toCharArray()) addKey(line, String.valueOf(letter), () -> type(String.valueOf(letter)));
-            root.addView(line);
-        }
-        LinearLayout tools = new LinearLayout(this);
-        addKey(tools, "五/拼/英", () -> selectMode((modeIndex+1)%3));
-        addKey(tools, "中/英", () -> selectMode(english ? lastChineseMode : 2));
-        addKey(tools, "删除", this::delete);
-        addKey(tools, "设置", () -> startActivity(new Intent(this, SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
-        root.addView(tools);
-        LinearLayout bottom = new LinearLayout(this);
-        for (String symbol : new String[]{"，","。","/","空格","回车","取消"}) {
-            addKey(bottom, symbol, () -> {
-                if (symbol.equals("空格")) { if (!composition.isEmpty()) accept(0); else type(" "); }
-                else if (symbol.equals("回车")) { if (original != null) acceptTranslation(); else { raw(); InputConnection c = getCurrentInputConnection(); if (c != null) { c.sendKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER)); c.sendKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENTER)); } } }
-                else if (symbol.equals("取消")) cancelTranslation();
-                else type(symbol);
-            });
-        }
-        root.addView(bottom); updateFrame(new JSONObject()); return root;
+        LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(android.graphics.Color.rgb(229,232,238));
+        LinearLayout toolbar=new LinearLayout(this);
+        modeButton=toolButton(new String[]{"五笔","拼音","英文"}[modeIndex]);
+        modeButton.setOnClickListener(v -> {
+            PopupMenu menu=new PopupMenu(this,modeButton);
+            String[] names={"五笔","拼音","英文"};
+            for(int i=0;i<names.length;i++) { final int mode=i; menu.getMenu().add(names[i]).setOnMenuItemClickListener(item -> { selectMode(mode); return true; }); }
+            menu.show();
+        });
+        toolbar.addView(modeButton,new LinearLayout.LayoutParams(dp(72),dp(38)));
+        TextView brand=new TextView(this); brand.setText("出海舰"); brand.setGravity(android.view.Gravity.CENTER); brand.setTextSize(14);
+        toolbar.addView(brand,new LinearLayout.LayoutParams(0,dp(38),1));
+        Button settings=toolButton("设置"); settings.setOnClickListener(v -> startActivity(new Intent(this,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
+        toolbar.addView(settings,new LinearLayout.LayoutParams(dp(64),dp(38)));
+        Button cancel=toolButton("取消"); cancel.setOnClickListener(v -> cancelTranslation()); toolbar.addView(cancel,new LinearLayout.LayoutParams(dp(56),dp(38)));
+        root.addView(toolbar);
+        status=new TextView(this); status.setTextSize(14); status.setPadding(dp(12),0,dp(12),0); status.setMaxLines(2); root.addView(status);
+        HorizontalScrollView scroll=new HorizontalScrollView(this); scroll.setHorizontalScrollBarEnabled(false);
+        candidates=new LinearLayout(this); scroll.addView(candidates); root.addView(scroll,new LinearLayout.LayoutParams(-1,dp(52)));
+        scroll.setOnScrollChangeListener((view,x,y,oldX,oldY) -> noteVisibleHints());
+        keyboard=new Keyboard(this,this::keyboardKey); keyboard.setMode(new String[]{"五笔","拼音","英文"}[modeIndex],english); keyboard.setEditor(getCurrentInputEditorInfo());
+        root.addView(keyboard); updateFrame(new JSONObject()); return root;
     }
 
-    private void addKey(LinearLayout row, String title, Runnable action) {
-        Button button = new Button(this); button.setText(title); button.setAllCaps(false); button.setMinWidth(0); button.setMinimumWidth(0); button.setPadding(0,4,0,4);
-        row.addView(button, new LinearLayout.LayoutParams(0,(int)(48*getResources().getDisplayMetrics().density),1)); button.setOnClickListener(v -> action.run());
+    private int dp(int value) { return Math.round(value*getResources().getDisplayMetrics().density); }
+    private Button toolButton(String title) {
+        Button button=new Button(this); button.setText(title); button.setTextSize(14); button.setAllCaps(false); button.setPadding(0,0,0,0); button.setMinWidth(0); button.setMinimumWidth(0); button.setBackgroundColor(android.graphics.Color.TRANSPARENT); return button;
+    }
+
+    public void onStartInputView(EditorInfo info,boolean restarting) {
+        super.onStartInputView(info,restarting);
+        if(keyboard!=null) keyboard.setEditor(info);
+        updateFrame(new JSONObject());
+    }
+
+    private void keyboardKey(String key) {
+        switch(key) {
+            case "DELETE": delete(); return;
+            case "MODE": selectMode(english?lastChineseMode:2); return;
+            case "SPACE": if(!composition.isEmpty()) accept(0); else type(" "); return;
+            case "ENTER":
+                if(original!=null) { acceptTranslation(); return; }
+                if(!composition.isEmpty()) { raw(); return; }
+                InputConnection connection=getCurrentInputConnection(); if(connection==null) return;
+                EditorInfo info=getCurrentInputEditorInfo();
+                int action=info==null?EditorInfo.IME_ACTION_NONE:info.imeOptions & EditorInfo.IME_MASK_ACTION;
+                if(info!=null && (info.imeOptions & EditorInfo.IME_FLAG_NO_ENTER_ACTION)==0 && action!=EditorInfo.IME_ACTION_NONE && action!=EditorInfo.IME_ACTION_UNSPECIFIED && connection.performEditorAction(action)) return;
+                connection.sendKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN,android.view.KeyEvent.KEYCODE_ENTER));
+                connection.sendKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_UP,android.view.KeyEvent.KEYCODE_ENTER)); return;
+            default: type(!english && key.equals(",")?"，":!english && key.equals(".")?"。":key);
+        }
     }
 
     public void onStartInput(EditorInfo info, boolean restarting) {
@@ -109,7 +132,7 @@ public final class ChuhaiInputService extends InputMethodService {
             if (candidates != null) {
                 candidates.removeAllViews(); JSONArray list = frame.optJSONArray("candidates"); JSONArray hints = frame.optJSONArray("annotations");
                 if (list != null) for (int i=0;i<list.length();i++) {
-                    final int index=i; Button button=new Button(this); button.setText(list.getString(i)+(hints!=null && !hints.optString(i).isEmpty()?"\n"+hints.optString(i):"")); candidates.addView(button); button.setOnClickListener(v -> accept(index));
+                    final int index=i; Button button=new Button(this); button.setText(list.getString(i)+(hints!=null && !hints.optString(i).isEmpty()?"\n"+hints.optString(i):"")); button.setAllCaps(false); button.setTextSize(18); button.setPadding(dp(14),0,dp(14),0); button.setBackgroundColor(android.graphics.Color.TRANSPARENT); candidates.addView(button,new LinearLayout.LayoutParams(-2,dp(52))); button.setOnClickListener(v -> accept(index));
                 }
             }
             if(candidates!=null) candidates.post(this::noteVisibleHints);
@@ -140,6 +163,8 @@ public final class ChuhaiInputService extends InputMethodService {
 
     private void selectMode(int mode) {
         cancelTranslation(); raw(); modeIndex=mode; english=mode==2; if(!english) lastChineseMode=mode;
+        if(keyboard!=null) keyboard.setMode(new String[]{"五笔","拼音","英文"}[modeIndex],english);
+        if(modeButton!=null) modeButton.setText(new String[]{"五笔","拼音","英文"}[modeIndex]);
         getSharedPreferences("keyboard",MODE_PRIVATE).edit().putInt("input_mode_v2",modeIndex).putInt("chinese_mode",lastChineseMode).apply();
         try { updateFrame(nativeEngine.frame(command("mode").put("mode",new String[]{"wubi","pinyin","english"}[modeIndex]))); } catch(Exception e) { showStatus(e.getMessage()); }
     }

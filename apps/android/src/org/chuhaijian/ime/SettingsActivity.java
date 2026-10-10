@@ -10,6 +10,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -22,9 +23,21 @@ public final class SettingsActivity extends Activity {
     public void onCreate(Bundle saved) {
         super.onCreate(saved);
         ScrollView scroll=new ScrollView(this); root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(24,24,24,24); scroll.addView(root); setContentView(scroll);
-        text("出海舰",26); text("五笔86 · 拼音 · 混输\n中文输入后 // 翻译，回车确认使用。",17);
+        text("出海舰",26); text("五笔86 · 拼音 · 英文\n中文输入后 // 翻译，回车确认使用。",17);
         button("启用出海舰键盘",() -> startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)));
         button("选择输入法",() -> ((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showInputMethodPicker());
+        android.content.SharedPreferences keyboard=getSharedPreferences("keyboard",MODE_PRIVATE);
+        text("键盘设置",22);
+        TextView height=text("按键高度："+keyboard.getInt("key_height",58)+" dp",16);
+        SeekBar size=new SeekBar(this); size.setMax(20); size.setProgress(keyboard.getInt("key_height",58)-50); root.addView(size);
+        size.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(SeekBar bar,int progress,boolean user) { height.setText("按键高度："+(50+progress)+" dp"); if(user) keyboard.edit().putInt("key_height",50+progress).apply(); }
+            public void onStartTrackingTouch(SeekBar bar) {}
+            public void onStopTrackingTouch(SeekBar bar) {}
+        });
+        CheckBox preview=new CheckBox(this); preview.setText("按下字母时显示放大预览"); preview.setChecked(keyboard.getBoolean("key_preview",true)); root.addView(preview);
+        preview.setOnCheckedChangeListener((view,checked) -> keyboard.edit().putBoolean("key_preview",checked).apply());
+        text("设置即时保存；返回输入框后生效。点键盘左上角可选择五笔、拼音、英文；123 打开数字符号。",15);
         android.content.SharedPreferences config=getSharedPreferences("cloud",MODE_PRIVATE);
         text("整句云翻译",22); text("仅在你主动触发翻译时，发送当前中文段落给你配置的服务。密码框不翻译。接口费用由服务商收取。",15);
         CheckBox enabled=new CheckBox(this); enabled.setText("启用云翻译"); enabled.setChecked(config.getBoolean("enabled",false)); root.addView(enabled);

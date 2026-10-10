@@ -320,3 +320,7 @@ Mac 中英文输入使用当前 `NSEvent.modifierFlags` 中的 Caps Lock / Shift
 ## 出海舰跨平台测试包
 
 `InputMode` 提供五笔、拼音、英文预设；`CapsLockBehavior` 提供中英切换和三模式循环。`LearningEncounter` 携带曝光时间，完成输入时收集并按本地日期写入 TranslationBook.daily_counts，同一输入片段的重复候选重绘去重，私密输入不收录。Android 仅报告实际可见候选，完成输入时读取词本后合并保存，避免覆盖设置页的掌握状态。构建脚本包含 glossary-en.qj，版本 0.1.1-test/code 2。Windows manual workflow 使用 MSVC、Inno Setup 7 和自包含设置运行时，安装包同时包含 x64/x86 TSF DLL。2026-10-10 Windows 构建、Clippy 和测试通过，Android 实际词库加载及五笔/拼音/英文切换内核检查通过；用户确认 Android 基本输入可用，Windows 尚待真机验收。
+
+## Android 0.1.2-test/code 3：手机键盘
+
+平台层 keyboard 包使用纯 Java Layout 计算标准三行 QWERTY 和底部功能键；原生 Button 完整矩形接收触摸，内缩背景保留视觉间距，第二行边缘扩展触摸范围并校正文字位置。多指事件分发、无障碍点击沿用原生 View。KeyButton 提供弹出预览和生命周期清理的长按退格；Keyboard 管理符号、临时大写和锁定大写。InputMethodService 将按键交给原有内核，EditorInfo 决定回车动作；设置保存按键高度/预览并在下次输入视图显示时重载。不改变候选、纠错、词本或网络协议。五种屏宽、两种页面的触摸覆盖与标准位置检查通过；APK 构建/签名通过，待用户手机检验实际误触。

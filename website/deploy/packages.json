@@ -13,8 +13,8 @@
   },
   {
     "platform": "android",
-    "filename": "chuhai-ime-0.1.1-test-android.apk",
-    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-crossplatform/chuhai-ime-0.1.1-test-android.apk",
-    "sha256": "d192a59ad2c55d70ea39c02a2129dc1a898cd76cb498e88c34ca37810ce1349a"
+    "filename": "chuhai-ime-0.1.2-test-android.apk",
+    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/android-v0.1.2-test/chuhai-ime-0.1.2-test-android.apk",
+    "sha256": "8174ebda3f85f6d369c064287640d834d976a790ceec0c4b4eae95e0d6f63114"
   }
 ]

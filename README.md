@@ -13,7 +13,7 @@
 | 平台 | 直接下载 | 系统要求与测试状态 |
 | --- | --- | --- |
 | Windows | [下载安装程序（.exe，约 99 MB）](https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-crossplatform/chuhai-0.1.5-dev-597b2da-windows-x86_64-setup.exe) | Windows 10 1809+，x64；编译与自动测试通过，待真机验收 |
-| Android | [下载安装包（.apk，约 15 MB）](https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-crossplatform/chuhai-ime-0.1.1-test-android.apk) | Android 8.0+，ARM64 / x86_64；已验证基本输入可用 |
+| Android | [下载安装包（.apk，约 15 MB）](https://github.com/yardfribley-bit/chuhai-ime/releases/download/android-v0.1.2-test/chuhai-ime-0.1.2-test-android.apk) | Android 8.0+，ARM64 / x86_64；已验证基本输入可用 |
 | macOS Intel | [下载安装包（.pkg，约 102 MB）](https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-build238/chuhai-ime-0.1.5-build238-macos-x86_64.pkg) | Intel Mac，build238 测试包；比当前源码旧，不包含后续三模式切换与次数统计改动 |
 
 Apple Silicon Mac 暂无预编译安装包，需自行编译。以上均为测试版：Windows 包未购买代码签名证书，Mac 包未公证，Android 使用测试签名。
@@ -30,7 +30,7 @@ Windows 运行 `.exe` 安装后选择出海舰输入法；Android 安装 `.apk` 
 
 安装 Mac 测试包后，在“系统设置 → 键盘 → 文本输入 → 编辑”中添加并选择“出海舰”。若输入源未立即出现，请注销后重新登录。
 
-菜单提供 **五笔／拼音／英文** 三种模式。Mac 的 **Caps Lock** 默认切换中英文，并保留上一次中文方案；通用设置也可选择按 Caps Lock 依次切换三个模式。大写英文按住 Shift。Windows 默认单击 Shift 切换中英文，设置中可选择三种预设；Android 键盘有三种模式按钮和中/英切换键。
+菜单提供 **五笔／拼音／英文** 三种模式。Mac 的 **Caps Lock** 默认切换中英文，并保留上一次中文方案；通用设置也可选择按 Caps Lock 依次切换三个模式。大写英文按住 Shift。Windows 默认单击 Shift 切换中英文，设置中可选择三种预设；Android 在左上角菜单选择三种模式，底部提供中/英切换键。
 
 - 五笔86：输入 `inim`，选择“漏洞”。
 - 拼音：输入 `loudong`，选择“漏洞”。
@@ -94,7 +94,7 @@ OpenRouter 配置示例：
 | --- | --- | --- |
 | macOS | 五笔86、拼音、混输 | 本机已安装，用户已确认中文翻译及英文输出可用；使用指南已加入界面 |
 | Windows | 五笔86、拼音、英文预设及高级混输配置 | x64 安装包已通过 Windows 构建、静态检查和测试，待真机验收 |
-| Android | 五笔86、拼音、混输 | 已生成 ARM64 / x86_64 测试 APK，仍需手机验收 |
+| Android | 五笔86、拼音、英文 | 已生成 ARM64 / x86_64 测试 APK，仍需手机验收 |
 
 当前是开发测试版。编译通过不等于所有应用兼容，Windows 与 Android 尚不应视为正式可用版本。跨平台工程状态见 [开发记录](docs/notes/chuhai-cross-platform.md)，设备验收见 [测试步骤](docs/notes/chuhai-device-test.md)。
 
@@ -124,4 +124,4 @@ apps/macos/scripts/bundle.sh --pkg
 
 ### Windows / Android 测试安装包
 
-从 [跨平台测试版下载页](https://github.com/yardfribley-bit/chuhai-ime/releases/tag/v0.1.5-dev-crossplatform) 下载 Windows x64 setup.exe 或 Android 0.1.1-test APK。Windows 包包含 32 位应用输入接口和设置界面运行时；Android 支持 Android 8.0+、ARM64 / x86_64，已由用户在手机验证基本输入可用。两个测试包均不包含个人密钥，翻译按需自行配置。Windows 仍需真机验收，编译成功不代表已完成兼容性测试。
+从 [跨平台测试版下载页](https://github.com/yardfribley-bit/chuhai-ime/releases/tag/v0.1.5-dev-crossplatform) 下载 Windows x64 setup.exe 或 Android APK（新版见上方下载表）。Windows 包包含 32 位应用输入接口和设置界面运行时；Android 支持 Android 8.0+、ARM64 / x86_64，已由用户在手机验证基本输入可用。两个测试包均不包含个人密钥，翻译按需自行配置。Windows 仍需真机验收，编译成功不代表已完成兼容性测试。

@@ -43,7 +43,7 @@ run(TOOLS / "aapt2", "compile", "--dir", APP / "res", "-o", resources)
 generated = OUT / "generated"
 generated.mkdir(exist_ok=True)
 unsigned = OUT / "unsigned.apk"
-run(TOOLS / "aapt2", "link", "-o", unsigned, "--manifest", APP / "AndroidManifest.xml", "-I", ANDROID_JAR, "--min-sdk-version", "26", "--target-sdk-version", "35", "--version-code", "2", "--version-name", "0.1.1-test", "--java", generated, "-A", assets, resources)
+run(TOOLS / "aapt2", "link", "-o", unsigned, "--manifest", APP / "AndroidManifest.xml", "-I", ANDROID_JAR, "--min-sdk-version", "26", "--target-sdk-version", "35", "--version-code", "3", "--version-name", "0.1.2-test", "--java", generated, "-A", assets, resources)
 classes = OUT / "classes"
 classes.mkdir(exist_ok=True)
 sources = list((APP / "src").rglob("*.java")) + list(generated.rglob("*.java"))
@@ -60,7 +60,7 @@ run(TOOLS / "zipalign", "-f", "-P", "16", "4", unsigned, aligned)
 key = OUT / "test-signing.jks"
 if not key.exists():
     run(JAVA / "keytool", "-genkeypair", "-keystore", key, "-storepass", "android", "-keypass", "android", "-alias", "androiddebugkey", "-dname", "CN=Chuhai Local Test", "-keyalg", "RSA", "-validity", "3650")
-apk = OUT / "出海舰-0.1.1-test.apk"
+apk = OUT / "出海舰-0.1.2-test.apk"
 run(TOOLS / "apksigner", "sign", "--ks", key, "--ks-pass", "pass:android", "--key-pass", "pass:android", "--out", apk, aligned)
 run(TOOLS / "apksigner", "verify", "--verbose", apk)
 print(apk)
