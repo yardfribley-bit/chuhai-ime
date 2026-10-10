@@ -1,0 +1,93 @@
+//! 联想结果的轮询定时器。发出请求时开始轮询，结果到了或超时就停，平时不占 CPU。
+
+use std::time::{Duration, Instant};
+
+use objc2::rc::Retained;
+use objc2::runtime::AnyObject;
+use objc2::{MainThreadMarker, MainThreadOnly, define_class, msg_send, sel};
+use objc2_foundation::{NSObject, NSObjectProtocol, NSRunLoop, NSRunLoopCommonModes, NSTimer};
+
+/// 轮询间隔。
+const POLL_INTERVAL: f64 = 0.05;
+
+pub struct PredictMonitor {
+    /// 定时器；没在等结果时为 `None`。
+    timer: Option<Retained<NSTimer>>,
+
+    /// 本轮开始等待的时间。
+    since: Option<Instant>,
+
+    max_wait: Duration,
+
+    mtm: MainThreadMarker,
+}
+
+impl PredictMonitor {
+    pub fn new(mtm: MainThreadMarker) -> Self {
+        Self {
+            timer: None,
+            since: None,
+            max_wait: Duration::from_secs(12),
+            mtm,
+        }
+    }
+
+    /// 有请求在飞：开始（或继续）轮询。
+    pub fn start(&mut self, max_wait: Duration) {
+        self.max_wait = max_wait;
+        self.since = Some(Instant::now());
+        if self.timer.is_some() {
+            return;
+        }
+        let target = PredictTicker::new(self.mtm);
+        let timer = unsafe {
+            NSTimer::timerWithTimeInterval_target_selector_userInfo_repeats(
+                POLL_INTERVAL,
+                &target,
+                sel!(tick:),
+                None,
+                true,
+            )
+        };
+        // IMK 可能运行在事件跟踪模式，默认模式的定时器不能保证收到回调。
+        unsafe { NSRunLoop::mainRunLoop().addTimer_forMode(&timer, NSRunLoopCommonModes) };
+        self.timer = Some(timer);
+    }
+
+    pub fn stop(&mut self) {
+        if let Some(timer) = self.timer.take() {
+            timer.invalidate();
+        }
+        self.since = None;
+    }
+
+    /// 等太久了就放弃。
+    pub fn expired(&self) -> bool {
+        self.since
+            .is_some_and(|since| since.elapsed() > self.max_wait)
+    }
+}
+
+define_class!(
+    // SAFETY: NSObject 没有子类化要求；没有实现 Drop。
+    #[unsafe(super(NSObject))]
+    #[thread_kind = MainThreadOnly]
+    #[ivars = ()]
+    struct PredictTicker;
+
+    impl PredictTicker {
+        #[unsafe(method(tick:))]
+        fn tick(&self, _timer: Option<&AnyObject>) {
+            crate::host::with(|h| h.poll_prediction());
+        }
+    }
+
+    unsafe impl NSObjectProtocol for PredictTicker {}
+);
+
+impl PredictTicker {
+    fn new(mtm: MainThreadMarker) -> Retained<Self> {
+        let this = mtm.alloc::<Self>().set_ivars(());
+        unsafe { msg_send![super(this), init] }
+    }
+}

@@ -1,0 +1,3 @@
+<input-method xmlns:android="http://schemas.android.com/apk/res/android" android:settingsActivity="org.chuhaijian.ime.SettingsActivity" android:supportsSwitchingToNextInputMethod="true">
+  <subtype android:label="出海舰 · 五笔和拼音" android:imeSubtypeLocale="zh_CN" android:imeSubtypeMode="keyboard"/>
+</input-method>

@@ -1,0 +1,16 @@
+/target
+/data
+/diagnostics
+/logs
+.env
+.env.*
+!.env.example
+*.log
+*.app
+*.jks
+*.pem
+*.key
+*.p12
+**/*.rs.bk
+.DS_Store
+__pycache__/
