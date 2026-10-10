@@ -75,7 +75,7 @@ OpenRouter 配置示例：
 | 平台 | 输入方案 | 当前状态 |
 | --- | --- | --- |
 | macOS | 五笔86、拼音、混输 | 本机已安装，用户已确认中文翻译及英文输出可用；使用指南已加入界面 |
-| Windows | 五笔86、拼音、混输 | 源码已接入翻译与今日词本，仍需 Windows 构建和真机验收 |
+| Windows | 五笔86、拼音、英文预设及高级混输配置 | x64 安装包已通过 Windows 构建、静态检查和测试，待真机验收 |
 | Android | 五笔86、拼音、混输 | 已生成 ARM64 / x86_64 测试 APK，仍需手机验收 |
 
 当前是开发测试版。编译通过不等于所有应用兼容，Windows 与 Android 尚不应视为正式可用版本。跨平台工程状态见 [开发记录](docs/notes/chuhai-cross-platform.md)，设备验收见 [测试步骤](docs/notes/chuhai-device-test.md)。
@@ -103,3 +103,7 @@ apps/macos/scripts/bundle.sh --pkg
 请勿把 API 密钥、个人配置、输入日志或词本提交到 GitHub。
 
 出海舰基于 [Qingjian 0.1.4](https://github.com/qingjian-team/qingjian) 修改，遵循 **GPL-3.0-or-later**。必要的原作者署名、数据许可及历史内部标识保留，详情见 [NOTICE](NOTICE.md) 和 [LICENSE](LICENSE)。产品界面使用“出海舰”；当前图标仍沿用上游资源，正式发布前计划替换。
+
+### Windows / Android 测试安装包
+
+从 [跨平台测试版下载页](https://github.com/yardfribley-bit/chuhai-ime/releases/tag/v0.1.5-dev-crossplatform) 下载 Windows x64 setup.exe 或 Android 0.1.1-test APK。Windows 包包含 32 位应用输入接口和设置界面运行时；Android 支持 Android 8.0+、ARM64 / x86_64，已由用户在手机验证基本输入可用。两个测试包均不包含个人密钥，翻译按需自行配置。Windows 仍需真机验收，编译成功不代表已完成兼容性测试。

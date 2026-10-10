@@ -316,3 +316,7 @@ Windows IPC v8 的 RequestSelection 增加 paragraph 标记，TSF 通过异步�
 出海舰 macOS 使用指南：`preferences/pages/guide.rs` 构建首个原生标签页；菜单 `OpenUsageGuide`（tag 6）直接选择该页。云服务页同时显示 `//` 触发、Enter 接受、Esc 取消的提示。用户说明同步 `docs/user/getting-started/quick-start.md`。
 
 Mac 中英文输入使用当前 `NSEvent.modifierFlags` 中的 Caps Lock / Shift 标志；全局修饰键查询仅用于无事件的显示路径。语言切换时旧编码原样上屏，下一字母进入新语言缓冲区。
+
+## 出海舰跨平台测试包
+
+`InputMode` 提供五笔、拼音、英文预设；`CapsLockBehavior` 提供中英切换和三模式循环。`LearningEncounter` 携带曝光时间，完成输入时收集并按本地日期写入 TranslationBook.daily_counts，同一输入片段的重复候选重绘去重，私密输入不收录。Android 仅报告实际可见候选，完成输入时读取词本后合并保存，避免覆盖设置页的掌握状态。构建脚本包含 glossary-en.qj，版本 0.1.1-test/code 2。Windows manual workflow 使用 MSVC、Inno Setup 7 和自包含设置运行时，安装包同时包含 x64/x86 TSF DLL。2026-10-10 Windows 构建、Clippy 和测试通过，Android 实际词库加载及五笔/拼音/英文切换内核检查通过；用户确认 Android 基本输入可用，Windows 尚待真机验收。

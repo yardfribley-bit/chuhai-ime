@@ -14,3 +14,5 @@
 **/*.rs.bk
 .DS_Store
 __pycache__/
+
+/releases/
