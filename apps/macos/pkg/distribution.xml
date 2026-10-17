@@ -21,5 +21,5 @@
     <choice id="app.agentreins.inputmethod" visible="false">
         <pkg-ref id="app.agentreins.inputmethod"/>
     </choice>
-    <pkg-ref id="app.agentreins.inputmethod" version="@PKG_VERSION@" onConclusion="none">Qingjian-component.pkg</pkg-ref>
+    <pkg-ref id="app.agentreins.inputmethod" version="@PKG_VERSION@" onConclusion="none">AgentReins-component.pkg</pkg-ref>
 </installer-gui-script>

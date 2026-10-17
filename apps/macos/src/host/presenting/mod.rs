@@ -84,7 +84,12 @@ impl Host {
     }
 
     /// 按会话状态画候选窗口。候选为空且没有 preedit 时收窗。
+    /// 翻译进行中不画候选：选区旁边浮一块标着「译」的小窗。
     pub fn render(&mut self) {
+        if self.translation.is_some() {
+            self.window.show(self.translation_frame(), self.anchor);
+            return;
+        }
         let size = self.session.layout.page_size();
         let page = self.session.page;
         // 横排展开成矩阵时画视口里的几行，序号只标在高亮所在那一行（数字键选的就是它）；单行时只画当前页
@@ -150,5 +155,35 @@ impl Host {
             status: self.status.clone(),
         };
         self.window.show(frame, self.anchor);
+    }
+
+    /// 贴在选区旁的翻译小窗：左边一枚「译」，中间是译文，底下写下一步。
+    fn translation_frame(&self) -> Frame {
+        let result = self
+            .translation
+            .as_ref()
+            .and_then(|job| job.result.as_deref());
+        Frame {
+            preedit: None,
+            rows: vec![Row {
+                index: "译".to_owned(),
+                text: result.unwrap_or("翻译中…").to_owned(),
+                annotation: Vec::new(),
+                cloud: false,
+            }],
+            highlighted: 0,
+            columns: 0,
+            column_ems: Vec::new(),
+            footer: Some(
+                if result.is_some() {
+                    "回车替换 · Esc 保留"
+                } else {
+                    "Esc 取消"
+                }
+                .to_owned(),
+            ),
+            sentence: None,
+            status: None,
+        }
     }
 }

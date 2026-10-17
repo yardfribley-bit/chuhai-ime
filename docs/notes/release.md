@@ -159,4 +159,4 @@ Apple Developer 账号有了以后，在仓库 Secrets 里配齐 `release.yml` �
 ## 本机打包
 
 `apps/macos/scripts/bundle.sh --pkg` 打本机架构；`QINGJIAN_TARGET=x86_64-apple-darwin` 交叉编译 Intel 包（要先 `rustup target add`，
-本机不需要时不必装，CI 上两个都打）。成品在 `target/pkg/qingjian-<版本>-macos-<arch>.pkg`，每个架构一个工作目录，连着打互不覆盖。
+本机不需要时不必装，CI 上两个都打）。成品在 `target/pkg/AgentReins-<版本>-macos-<arch>.pkg`，每个架构一个工作目录，连着打互不覆盖。

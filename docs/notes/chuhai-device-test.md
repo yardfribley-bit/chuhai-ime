@@ -23,7 +23,7 @@ rustup target add i686-pc-windows-msvc
 .\apps\windows\installer\build.ps1
 ```
 
-安装包输出到 `target\installer\chuhai-<版本>-windows-x86_64-setup.exe`。普通测试不要加 `-Sign`。安装后注销登录，再在系统输入法列表选择 AgentReins。
+安装包输出到 `target\installer\AgentReins-<版本>-windows-x86_64-setup.exe`。普通测试不要加 `-Sign`。安装后注销登录，再在系统输入法列表选择 AgentReins。
 
 在记事本和 X 浏览器分别执行 Android 清单中的输入与翻译检查，再检查 32 位应用。今日词本通过设置的“统计 → 今日学词”打开，目前桌面复习页只读。配置和密钥应只留在测试电脑，不加入源码包。
 

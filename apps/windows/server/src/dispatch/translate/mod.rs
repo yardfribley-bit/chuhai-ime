@@ -157,7 +157,7 @@ impl Router {
         }
     }
 
-    /// 评审帧：单条候选（译文或「翻译中…」），无 preedit、无分页。
+    /// 评审帧：选区旁的「译」小窗。提示文案由候选窗改成序号「译」和底栏，不画成第 1 条候选。
     pub(super) fn translation_frame(&self, translation: &Translation) -> Frame {
         let text = translation
             .result
@@ -177,7 +177,14 @@ impl Router {
             theme: self.config.theme,
             aux_code_show: self.config.aux_code_show,
             sentence: None,
-            notice: None,
+            notice: Some(
+                if translation.result.is_some() {
+                    "回车替换 · Esc 保留"
+                } else {
+                    "Esc 取消"
+                }
+                .to_owned(),
+            ),
         }
     }
 }

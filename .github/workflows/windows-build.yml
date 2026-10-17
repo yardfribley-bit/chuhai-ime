@@ -46,7 +46,7 @@ jobs:
           Get-ChildItem target/installer/*.exe | ForEach-Object { "$((Get-FileHash $_ -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)" } | Set-Content target/installer/SHA256SUMS -Encoding utf8
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: chuhai-windows-x86_64-test
+          name: AgentReins-windows-x86_64-test
           path: |
             target/installer/*.exe
             target/installer/SHA256SUMS

@@ -166,7 +166,7 @@ switch_mode = ["shift"]
 # 任意修饰键组合（option / shift / control / command 用 + 连），偏好设置里点按钮录制；别用 control+数字（系统切桌面）和 command+数字（应用切标签页）
 translation = "option"
 translation_second = "shift+option"
-# 把应用里选中的文字交给云翻译（要开着云服务）：中英混排或纯英文译成中文，纯中文译成学习语言。译文先出现在候选窗口，回车替换，Esc 保留原文
+# 把应用里选中的文字交给云翻译（要开着云服务）：中英混排或纯英文译成中文，纯中文译成学习语言。选区旁边浮出标着「译」的小窗，回车替换，Esc 保留原文
 # 修饰键 + 一个字母或数字，任意组合；避开 ⌘T 这类应用常用键
 translate_selection = "control+option+t"
 # 数字键配这些修饰键删掉候选：用户词（云端选过的、自动造的）整个删掉，词库里的词清掉对它的学习记录。组句中要打感叹号先把词上屏
@@ -186,7 +186,7 @@ switch_mode = ["shift"]
 # 任意修饰键组合（alt / shift / ctrl / win 用 + 连）。Alt+数字会被 Windows 当菜单快捷键截走，缺省用 Ctrl；组句时才拦，不打字时照常放行给应用
 translation = "ctrl"
 translation_second = "shift+ctrl"
-# 把应用里选中的文字交给云翻译（要开着云服务）：中英混排或纯英文译成中文，纯中文译成学习语言。译文先出现在候选窗口，回车替换，Esc 保留原文
+# 把应用里选中的文字交给云翻译（要开着云服务）：中英混排或纯英文译成中文，纯中文译成学习语言。选区旁边浮出标着「译」的小窗，回车替换，Esc 保留原文
 translate_selection = "ctrl+alt+t"
 # 数字键配这些修饰键删掉候选：用户词（云端选过的、自动造的）整个删掉，词库里的词清掉对它的学习记录。组句中要打感叹号先把词上屏
 delete_candidate = "shift"

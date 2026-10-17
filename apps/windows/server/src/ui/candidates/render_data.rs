@@ -80,6 +80,28 @@ impl RenderData {
             (frame.page_count > 1).then(|| format!("{}/{}", frame.page + 1, frame.page_count));
         self.sentence = frame.sentence.clone();
         self.notice = frame.notice.clone();
+        self.apply_translation_card();
+    }
+
+    /// 翻译选区不画成第 1 条候选：左边一枚「译」，底下写回车或 Esc。
+    fn apply_translation_card(&mut self) {
+        let Some(hint) = self.notice.as_deref() else {
+            return;
+        };
+        if self.preedit.is_empty()
+            && self.rows.len() == 1
+            && (hint == "回车替换 · Esc 保留" || hint == "Esc 取消")
+        {
+            let hint = hint.to_owned();
+            if let Some(row) = self.rows.first_mut() {
+                row.index = "译".to_owned();
+                row.cloud = false;
+                row.code = None;
+                row.annotation.clear();
+            }
+            self.footer = Some(hint);
+            self.notice = None;
+        }
     }
 
     /// 渲染器要的帧。提示（删了什么词）在渲染器里画在拼音行右侧，与 macOS 一致。

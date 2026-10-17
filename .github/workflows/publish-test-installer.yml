@@ -22,7 +22,7 @@ jobs:
           [[ "$BUILD_RUN" =~ ^[0-9]+$ ]]
           gh run view "$BUILD_RUN" --json conclusion,workflowName > run.json
           python3 -c 'import json; r=json.load(open("run.json")); assert r["conclusion"] == "success" and r["workflowName"] == "Windows test installer"'
-          gh run download "$BUILD_RUN" --name chuhai-windows-x86_64-test --dir windows
+          gh run download "$BUILD_RUN" --name AgentReins-windows-x86_64-test --dir windows
           cd windows
           sed -i '1s/^\xEF\xBB\xBF//' SHA256SUMS
           sha256sum -c SHA256SUMS

@@ -101,7 +101,7 @@ pub(crate) fn view(settings: &Settings, context: &mut ViewContext<Settings>) -> 
         ),
         field(
             "翻译选中文字",
-            "选中文字后按这组键 + 当前字母（缺省 Ctrl+Alt+T）。中英文混排或纯英文译成中文；纯中文译成「通用」里的学习语言。回车 / 空格替换，Esc 保留原文。需要云服务。这里只改修饰键，字母固定用当前的。",
+            "选中文字后按 Ctrl+Alt+T（修饰键可改，字母固定用当前的）。中英文混排或纯英文译成中文；纯中文译成「通用」里的学习语言。选区旁边浮出标着「译」的小窗，回车替换，Esc 保留原文。需要云服务。",
             modifier_combo(
                 s.translate_selection.modifiers,
                 context.callback(Message::TranslateSelection),
