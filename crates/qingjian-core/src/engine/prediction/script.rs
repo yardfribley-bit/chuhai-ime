@@ -1,9 +1,9 @@
-//! 翻译选中文字的方向：看选区里的文字主要是哪种文字，决定译成学习语言还是译回中文。
+//! 翻译选中文字的方向：纯中文译成学习语言；夹了英文或假名就译成中文。
 
 use crate::candidate::Language;
 
-/// 选中的文字该译成什么语言：主要是汉字 → 学习语言（学习语言是中文时退到英文）；
-/// 有假名，或者拉丁字母不少于汉字 → 中文。只按字符统计，不猜语种细节，剩下的交给模型（提示词里写了「已是目标语言就译成中文」）。
+/// 选中的文字该译成什么语言。纯汉字 → 学习语言（学习语言是中文时退到英文）。
+/// 里面有拉丁字母或假名，或者根本没有汉字 → 中文。中英混排不再按谁字多来猜方向。
 pub fn translation_target(text: &str, learning: Language) -> Language {
     let mut han = 0usize;
     let mut kana = 0usize;
@@ -17,8 +17,7 @@ pub fn translation_target(text: &str, learning: Language) -> Language {
             latin += 1;
         }
     }
-    let to_chinese = kana > 0 || latin >= han;
-    if to_chinese {
+    if han == 0 || kana > 0 || latin > 0 {
         return Language::Chinese;
     }
     match learning {
@@ -83,10 +82,14 @@ mod tests {
     }
 
     #[test]
-    fn mixed_text_follows_the_majority() {
+    fn mixed_text_goes_to_chinese() {
         assert_eq!(
             translation_target("用 Rust 写输入法", Language::English),
-            Language::English
+            Language::Chinese
+        );
+        assert_eq!(
+            translation_target("我们正在 fix 这个漏洞", Language::Japanese),
+            Language::Chinese
         );
         assert_eq!(
             translation_target("Rust 的 borrow checker", Language::English),

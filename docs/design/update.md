@@ -5,7 +5,7 @@
 ## 目标与边界
 
 - 用户不用再从群里拿包：发了新版，已装的青简一天内自己知道。测试者把渠道切到「测试版」就能收到 beta / rc。
-- 输入法不替换自己：只提示，点了打开 [下载页](https://qingjian.app/download)，安装仍由系统安装程序完成。
+- 输入法不替换自己：只提示，点了打开 [下载页](https://www.cyberstroll.top/download)，安装仍由系统安装程序完成。
 - 更新通道等于远程代码执行通道，所以索引从第一版起就签名；客户端只认签过名的索引。
 - 隐私：请求是对静态文件的 GET，不带账号、设备标识或输入内容；`[update] check = false` 关掉后不联网。
 
@@ -17,7 +17,7 @@
   qingjian-release-sign sign → releases.json.sig      私钥：CI 密钥 QINGJIAN_INDEX_SIGNING_KEY
   两个文件挂到本次 Release 与 GitHub latest
 官网构建（qingjian-web scripts/sync-releases.mjs）
-  原样拷到 static/ → https://qingjian.app/releases.json 与 .sig
+  原样拷到 static/ → https://www.cyberstroll.top/releases.json 与 .sig
 客户端（crates/qingjian-update）
   下载两者 → ed25519 验签 → 解析 → 按平台 / CPU / 渠道挑比当前新的最新版 → 写 update.json
 ```

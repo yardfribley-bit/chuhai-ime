@@ -1,18 +1,18 @@
-﻿; 出海舰 Windows 输入法安装脚本（Inno Setup）。
+﻿; AgentReins Windows 输入法安装脚本（Inno Setup）。
 ;
-; 装到 Program Files\Qingjian（64 位），把 TSF DLL（64 位与 32 位各一份，见 README「安装布局」）、Server、设置程序与随包数据装在一起，
+; 装到 Program Files\AgentReins（64 位），把 TSF DLL（64 位与 32 位各一份，见 README「安装布局」）、Server、设置程序与随包数据装在一起，
 ; 然后：① 给安装目录加 ALL APPLICATION PACKAGES 读+执行权限（UWP/AppContainer 应用——任务栏搜索、
-; 设置——才能加载 DLL）；② regsvr32 注册文本服务，64 位与 32 位各注册一次（图标落到 %ProgramData%\Qingjian）；
+; 设置——才能加载 DLL）；② regsvr32 注册文本服务，64 位与 32 位各注册一次（图标落到 %ProgramData%\AgentReins）；
 ; ③ 在「启动」文件夹放 Server 快捷方式（登录时由 Explorer 走 ShellExecute 拉起，uiAccess 才生效——
 ;    计划任务直接拉起拿不到 uiAccess）；④ 装完点 Finish 立即以原用户 ShellExecute 起一次 Server，免得先注销。
-; 卸载反向：删旧任务（若有）、杀 Server、反注册 DLL，再删文件（用户数据 %APPDATA%\Qingjian 保留；启动快捷方式 Inno 自动删）。
+; 卸载反向：删旧任务（若有）、杀 Server、反注册 DLL，再删文件（用户数据 %APPDATA%\AgentReins 保留；启动快捷方式 Inno 自动删）。
 ;
 ; 升级：DLL 被加载进每个应用进程，文件锁着覆盖不了，所以 DLL 按版本起名（qingjian_tsf-<版本>.dll）并排装，
 ; 注册新的，旧的装完后删（删不掉的登记成重启后删）；已开着的应用继续用旧 DLL 直到重启，Server 两个版本都服务。
 ; Inno 的 CloseApplications 会用 Restart Manager 找出所有加载了 *.dll 的进程要求关闭——对输入法 DLL 就是关一切，故关掉；
 ; 只有 Server / 设置程序两个 exe 要覆盖，安装前自己 taskkill。
 ; Server 杀掉后，正在打字的应用里 DLL 连不上会自己把它拉起来（见 tsf 的 launch.rs），又占住 exe 和 mmap 着的数据：
-; 安装 / 卸载期间持有互斥体 Global\QingjianInstaller，新 DLL 看到它就不拉；旧版 DLL 不认得它，
+; 安装 / 卸载期间持有互斥体 Global\AgentReinsInstaller，新 DLL 看到它就不拉；旧版 DLL 不认得它，
 ; 所以 Server exe 先改名腾位再杀、[Files] 里排最后装，新 exe 落地前 DLL 拉不起任何 Server。
 ;
 ; 版本号由打包脚本用 /DAppVersion=... 传入，缺省 0.1.0。用法见本目录 README.md。
@@ -24,8 +24,8 @@
 #ifndef AppVersionNumeric
   #define AppVersionNumeric AppVersion
 #endif
-#define AppName "出海舰"
-#define Publisher "出海舰"
+#define AppName "AgentReins"
+#define Publisher "AgentReins"
 ; 脚本相对仓库根（ime/）：installer → windows → apps → ime
 #define Repo "..\..\.."
 ; 按版本起名的 TSF DLL（见文件头「升级」）。
@@ -38,7 +38,7 @@ AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#Publisher}
 VersionInfoVersion={#AppVersionNumeric}
-DefaultDirName={autopf}\Qingjian
+DefaultDirName={autopf}\AgentReins
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 ArchitecturesAllowed=x64compatible
@@ -62,7 +62,7 @@ Name: "chs"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
 [Messages]
 ; 完成页：DLL 会装进每个应用进程，装之前就开着的应用要用新版必须重启（见文件头「升级」）。
 ; 这是最容易被误解成「设置/新版没生效」的一点，所以放在完成页明说。
-FinishedLabel=安装完成。请注销后重新登录（或重启电脑），出海舰才会在所有应用里生效。%n%n不方便注销的话，先关掉再重新打开要打字的应用也可以。
+FinishedLabel=安装完成。请注销后重新登录（或重启电脑），AgentReins 才会在所有应用里生效。%n%n不方便注销的话，先关掉再重新打开要打字的应用也可以。
 
 [Files]
 ; 开源许可和来源声明随安装包保留。
@@ -106,20 +106,20 @@ Source: "{#Repo}\assets\sample\dict.tsv";        DestDir: "{app}\assets\sample";
 Source: "{#Repo}\target\release\qingjian-server.exe";   DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\出海舰设置"; Filename: "{app}\qingjian-settings.exe"; IconFilename: "{app}\qingjian.ico"
-Name: "{group}\卸载出海舰"; Filename: "{uninstallexe}"
+Name: "{group}\AgentReins 设置"; Filename: "{app}\qingjian-settings.exe"; IconFilename: "{app}\qingjian.ico"
+Name: "{group}\卸载 AgentReins"; Filename: "{uninstallexe}"
 ; 登录自启：登录时 Explorer 走 ShellExecute 拉起本快捷方式 → AppInfo 授予 uiAccess，候选窗才能盖过商店 / 任务栏搜索。
 ; 用 {commonstartup}（所有用户「启动」文件夹）而非 {userstartup}：本安装器是 admin 机器级安装，
 ; admin 模式下写每用户区会落到「谁提权就写谁」的 profile（Inno 会告警且可能不是目标用户）；
 ; 机器级「启动」项对每个登录用户都在其会话里由该用户的 Explorer 拉起，仍是 per-user 运行、仍授予 uiAccess。
 ; （计划任务直接拉起拿不到 uiAccess，故不用 schtasks。）
-Name: "{commonstartup}\出海舰 Server"; Filename: "{app}\qingjian-server.exe"; WorkingDir: "{app}"; IconFilename: "{app}\qingjian.ico"
+Name: "{commonstartup}\AgentReins Server"; Filename: "{app}\qingjian-server.exe"; WorkingDir: "{app}"; IconFilename: "{app}\qingjian.ico"
 
 [Run]
 ; ① UWP/AppContainer 应用要能读安装目录才能加载 DLL（*S-1-15-2-1 = ALL APPLICATION PACKAGES，按 SID 与语言无关）。
 Filename: "{sys}\icacls.exe"; Parameters: """{app}"" /grant *S-1-15-2-1:(OI)(CI)RX /T /C /Q"; \
   Flags: runhidden waituntilterminated; StatusMsg: "配置应用容器权限…"
-; ② 注册文本服务（写 HKCR + 图标到 %ProgramData%\Qingjian\qingjian.ico）。注册的是本版本的 DLL，
+; ② 注册文本服务（写 HKCR + 图标到 %ProgramData%\AgentReins\qingjian.ico）。注册的是本版本的 DLL，
 ;    InprocServer32 指向新文件；旧版本的 DLL **不能** regsvr32 /u（那会把整个 CLSID 注销掉）。
 Filename: "{sys}\regsvr32.exe"; Parameters: "/s ""{app}\{#TsfDll}"""; \
   Flags: runhidden waituntilterminated; StatusMsg: "注册输入法…"
@@ -131,7 +131,7 @@ Filename: "{syswow64}\regsvr32.exe"; Parameters: "/s ""{app}\{#TsfDll32}"""; \
 
 [UninstallRun]
 ; 反向：先删登录任务、杀 Server / 设置程序、反注册 DLL，Inno 再删文件（DLL 若仍被占用，重启后删）。
-Filename: "{sys}\schtasks.exe"; Parameters: "/delete /tn ""Qingjian Server"" /f"; \
+Filename: "{sys}\schtasks.exe"; Parameters: "/delete /tn ""AgentReins Server"" /f"; \
   Flags: runhidden; RunOnceId: "DelLogonTask"
 Filename: "{sys}\taskkill.exe"; Parameters: "/im qingjian-server.exe /f"; \
   Flags: runhidden; RunOnceId: "KillServer"
@@ -144,7 +144,7 @@ Filename: "{syswow64}\regsvr32.exe"; Parameters: "/u /s ""{app}\{#TsfDll32}"""; 
 
 [InstallDelete]
 ; 更早版本装在当前用户「启动」文件夹里的自启快捷方式：与机器级那份并存会起两个 Server（两条状态条）。
-Type: files; Name: "{userstartup}\Qingjian Server.lnk"
+Type: files; Name: "{userstartup}\AgentReins Server.lnk"
 ; 更早版本装的模型三件套（现在只带 model.qjm）：留着白占 56 MB。
 Type: files; Name: "{app}\data\model\model.safetensors"
 Type: files; Name: "{app}\data\model\config.json"
@@ -164,7 +164,7 @@ function CreateMutex(Attributes: Longint; InitialOwner: BOOL; Name: String): THa
 { 安装 / 卸载期间持有的互斥体，名字与 tsf 的 launch.rs 一致；句柄不关，进程退出时系统收回。 }
 procedure HoldInstallerMutex;
 begin
-  if CreateMutex(0, False, 'Global\QingjianInstaller') = 0 then
+  if CreateMutex(0, False, 'Global\AgentReinsInstaller') = 0 then
     Log('建安装互斥体失败');
 end;
 
@@ -234,7 +234,7 @@ procedure DeleteLegacyLogonTask;
 var
   ResultCode: Integer;
 begin
-  Exec('schtasks.exe', '/delete /tn "Qingjian Server" /f', '',
+  Exec('schtasks.exe', '/delete /tn "AgentReins Server" /f', '',
     SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
 

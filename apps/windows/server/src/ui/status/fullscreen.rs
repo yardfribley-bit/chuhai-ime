@@ -27,7 +27,7 @@ pub(super) fn show(hwnd: HWND, hidden: &Cell<bool>) {
     }
 }
 
-/// 收起状态条（出海舰不在前台 / 关掉了），不再检查。
+/// 收起状态条（AgentReins 不在前台 / 关掉了），不再检查。
 pub(super) fn hide(hwnd: HWND, hidden: &Cell<bool>) {
     let _ = unsafe { KillTimer(Some(hwnd), TIMER_ID) };
     hidden.set(false);

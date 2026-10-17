@@ -65,7 +65,8 @@ impl Router {
             terms: Vec::new(),
         });
         if self.paragraph_request {
-            self.engine.request_english_translation(text);
+            self.engine
+                .request_paragraph_translation(text, self.config.translation_language);
         } else {
             self.engine.request_translation(text);
         }

@@ -1,5 +1,5 @@
 //! 候选窗口：不抢焦点、置顶的分层窗口，跟随光标，画拼音行与候选列表，四周柔和阴影。
-//! 缺省交给出海舰渲染器出位图再贴（[`super::painter`]），配置 `renderer = "system"` 时走 GDI：绘制在 [`view`]，
+//! 缺省交给 AgentReins 渲染器出位图再贴（[`super::painter`]），配置 `renderer = "system"` 时走 GDI：绘制在 [`view`]，
 //! 配色 / 字体在 [`theme`]。绘制内容在 [`RenderData`]，一行的展示形态在 [`row`]。设计语言对齐 macOS 端。
 
 mod render_data;
@@ -30,7 +30,7 @@ use super::monitor;
 use super::painter::SharedPainter;
 use super::window_class::WindowClass;
 
-const CLASS_NAME: PCWSTR = w!("QingjianCandidateWindow");
+const CLASS_NAME: PCWSTR = w!("AgentReinsCandidateWindow");
 static CLASS: WindowClass = WindowClass::new();
 
 /// 光标行与候选窗之间的间隙（逻辑像素）。
@@ -69,7 +69,7 @@ pub(crate) struct CandidateWindow {
     /// 上次记进日志的缩放值（窗口 DPI、光标所在显示器 DPI）：变了才再记一条（#146）。
     logged_dpi: Cell<Option<(u32, Option<u32>)>>,
 
-    /// 出海舰渲染器；`None` 走 GDI。
+    /// AgentReins 渲染器；`None` 走 GDI。
     painter: SharedPainter,
 }
 
@@ -91,7 +91,7 @@ impl CandidateWindow {
             CreateWindowExW(
                 WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE,
                 CLASS_NAME,
-                w!("出海舰候选"),
+                w!("AgentReins 候选"),
                 WS_POPUP,
                 0,
                 0,

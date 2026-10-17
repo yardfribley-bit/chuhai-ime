@@ -3,7 +3,7 @@
 //! **没签名的 exe 带 uiAccess=true 会直接起不来**，所以没有证书的构建（CI 内测包）要设 `QINGJIAN_UIACCESS=0`
 //! 关掉它，代价是候选窗在 UWP 宿主里可能被盖住（用户文档已列为已知问题）。
 //! manifest 缺省含 PerMonitorV2 DPI 感知，与运行时那次 `SetProcessDpiAwarenessContext` 一致。
-//! 另把青简图标嵌进 exe（任务管理器 / 启动项里显示）。
+//! 另把 AgentReins 图标嵌进 exe（任务管理器 / 启动项里显示）。
 
 use embed_manifest::manifest::ExecutionLevel;
 use embed_manifest::{embed_manifest, new_manifest};
@@ -18,7 +18,7 @@ fn main() {
                 "cargo:warning=QINGJIAN_UIACCESS=0：Server 不带 uiAccess，候选窗在 UWP 宿主里可能被盖住"
             );
         }
-        let manifest = new_manifest("Qingjian.Server")
+        let manifest = new_manifest("AgentReins.Server")
             .requested_execution_level(ExecutionLevel::AsInvoker)
             .ui_access(ui_access);
         embed_manifest(manifest).expect("嵌入 Server manifest 失败");

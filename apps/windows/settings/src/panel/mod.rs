@@ -68,12 +68,12 @@ pub(crate) struct Settings {
 }
 
 impl Settings {
-    /// `%APPDATA%\Qingjian\config.toml`；取不到 `APPDATA` 退回工作目录。
+    /// `%APPDATA%\AgentReins\config.toml`；取不到 `APPDATA` 退回工作目录。
     fn config_path() -> PathBuf {
         qingjian_platform::dirs::config_path().unwrap_or_else(|| PathBuf::from("config.toml"))
     }
 
-    /// 检查更新的结果文件 `%APPDATA%\Qingjian\update.json`（Server 写，这里读）。
+    /// 检查更新的结果文件 `%APPDATA%\AgentReins\update.json`（Server 写，这里读）。
     fn update_state_path() -> Option<PathBuf> {
         qingjian_platform::dirs::user_dir().map(|dir| dir.join("update.json"))
     }
@@ -85,7 +85,7 @@ impl Settings {
         }
     }
 
-    /// 数据目录 `%APPDATA%\Qingjian`。
+    /// 数据目录 `%APPDATA%\AgentReins`。
     fn data_dir(&self) -> &Path {
         self.path.parent().unwrap_or_else(|| Path::new("."))
     }

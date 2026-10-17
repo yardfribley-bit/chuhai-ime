@@ -90,7 +90,7 @@ TSV 解析、查询与生成工具把 `lue` / `nue` 统一成 `lve` / `nve`。
   随包释义表没有的词库词 / 云端词上屏后入队，结果壳每秒 `Engine::poll_glosses` 经 `Translator::learn` 写进 `qingjian-translate::PersonalGlossary`
   （`user-glossary-<语言>.tsv`，`LayeredTranslator` 个人表优先）；随云联想开关一起开。
 - 问字键（缺省 `u`）开头是问字模式（`PredictionKind::Question`，答案带读音、不校验拼音），`?` 开头要 `ModeKeys::question_mark` 开着才算（配置 `[shortcut] question_mark`，缺省关，壳用 `Engine::takes_question_mark` 决定空缓冲区的 `?` 是入口还是标点）；`PredictionKind::Translate` 是壳里快捷键触发的「翻译选中文字」
-  （双向：汉字为主译成学习语言，外文译回中文，`prediction::translation_target`），译文走结果的 `sentence`。
+  （纯汉字译成学习语言，夹了拉丁字母或假名就译成中文，`prediction::translation_target`），译文走结果的 `sentence`。
 
 ## crates/qingjian-format
 
@@ -190,7 +190,7 @@ IMK 输入法，源码按 `app / host / imk / candidates / menubar / preferences
 - `apps/macos/scripts/bundle.sh --install` 打包安装到 `~/Library/Input Methods/`（开发用），`--pkg` 做分发用的 pkg（装 `/Library/Input Methods/`，postinstall 跑 `qingjian-macos --register`
   注册、启用并切成当前输入源；签名 / 公证靠 `QINGJIAN_SIGN_IDENTITY` / `QINGJIAN_INSTALLER_IDENTITY` / `QINGJIAN_NOTARY_PROFILE`，没设就 ad-hoc；`QINGJIAN_TARGET` 指定架构，
   成品 `target/pkg/qingjian-<版本>-macos-<arm64|x86_64>.pkg`）；`scripts/uninstall.sh` 卸载。
-- 日志在 `~/Library/Logs/Qingjian/`（按天分文件留 7 天，删了会重建），用户数据与配置在 `~/Library/Application Support/Qingjian/`。
+- 日志在 `~/Library/Logs/AgentReins/`（按天分文件留 7 天，删了会重建），用户数据与配置在 `~/Library/Application Support/AgentReins/`。
 - 配置项：云联想 `[predict]`（偏好设置「云服务」页有「测试连接」按钮：`qingjian_predict::ConnectionTest` 起线程发一条最小请求，`Host` 用独立定时器 `CloudTestMonitor` 轮询结果显示到窗口底部；
   `reasoning_effort` 缺省 `none`，DeepSeek V4 默认思考，不关正文为空）；模糊音 `[fuzzy]` 默认都关；`[general]` 学习语言（`off` 不显示译文）/ 每页候选数 / 翻页键 / 外观 / 竖排横排 / 拼音显示位置 /
   英文模式候选开关 / 中文优先 `chinese_first` / 双拼方案 `shuangpin`（小鹤 / 自然码 / 微软 / 搜狗 / 智能ABC / 小浪 / 首道，空为全拼）/ 日志级别 `log_level`（缺省 info 不含敲的内容，debug 逐键记，热切换）/ 输入日志 `input_log`；
@@ -242,7 +242,7 @@ Server 每次轮询比对用户 `dicts` 的路径 / mtime / 长度快照，配�
 
 中英切换键（`[shortcut] switch_mode`）与内置英文模式开关（`[general] english_mode`）得在**按键到达之前**就知道
 （单击判定在 `OnTestKeyUp`、是否登记语言栏按钮），但 DLL 跑在每个应用进程里、拿不到 Server 那份配置，
-`%APPDATA%\Qingjian` 对 AppContainer 里的商店应用也读不到（那是给输入日志和 `.env` 用的目录，不该加 ACE）。
+`%APPDATA%\AgentReins` 对 AppContainer 里的商店应用也读不到（那是给输入日志和 `.env` 用的目录，不该加 ACE）。
 所以由 **Server 读配置、经协议下发**（`InputSettings`：`OpenSession` 回包带一次，之后每拍 `SyncMode` 跟着走），
 DLL 不读文件、不查 mtime。`SessionOpened` 只回过协议版本对得上的 DLL——老的 `open` 是只写不读，
 多回一条会被它当成下一次 `Poll` 的应答而报错，那条连接就废了；老 DLL 从 `ModeSync` 那一拍也能拿到同一份（新字段直接忽略）。
@@ -293,7 +293,7 @@ DLL 不读文件、不查 mtime。`SessionOpened` 只回过协议版本对得上
 ## apps/linux
 
 `qingjian-linux-server` 为独立产品 `0.1.0-dev`，装配本地 Engine、词库、释义、频率学习、个人 n-gram、词汇记录与可选输入日志，
-本地整句模型（`data/model/model.qjm`，用户 `~/.local/share/qingjian/model/` 优先）按 `[model] enabled` 在后台加载、停键 80 ms 后重排，节拍与 Windows Server 的 `dispatch/rescore` 相同；不接云服务。`dispatch/session` 交换每个上下文的 EngineSession；真正的能力变化丢弃输入，普通焦点切换隔离保存。
+本地整句模型（`data/model/model.qjm`，用户 `~/.local/share/agentreins/model/` 优先）按 `[model] enabled` 在后台加载、停键 80 ms 后重排，节拍与 Windows Server 的 `dispatch/rescore` 相同；不接云服务。`dispatch/session` 交换每个上下文的 EngineSession；真正的能力变化丢弃输入，普通焦点切换隔离保存。
 默认面板插件仅转换事件，Shift 模式、候选点击、分页和失焦提交都由 Server 决定。
 
 Unix socket 用共享长度前缀与 Frame（当前公共版本 7，与 `PROTOCOL_VERSION` 同步，Fcitx5 插件里写死在 `qingjian.cpp` 的 OpenSession）；插件复用一条连接，每个上下文独立会话。Linux v3 扩展逐会话握手、确认 Sensitive/Password/Disable 后接受按下/释放、焦点和点击事实。
@@ -302,22 +302,22 @@ Unix socket 用共享长度前缀与 Frame（当前公共版本 7，与 `PROTOCO
 
 本地 macOS 注册构建：切换失败也重试，回读当前输入源 ID 后才报告成功；30 秒内未完成返回非零。复现构建运行 local-build.sh，工具链保存在相邻 qingjian-build-tools。
 
-出海舰本地定制构建 235：只调整输入源本地化显示名、菜单、偏好设置和安装器文案；继续使用原 bundle ID、模式 ID、连接名、执行文件名与用户数据目录，保留原项目及数据署名。
+AgentReins 本地定制构建 235：只调整输入源本地化显示名、菜单、偏好设置和安装器文案；继续使用原 bundle ID、模式 ID、连接名、执行文件名与用户数据目录，保留原项目及数据署名。
 
-## 出海舰整句翻译与今日词本
+## AgentReins 整句翻译与今日词本
 
-qingjian-core::translation_trigger 统一解析光标前段落、计算 UTF-16 替换长度、提供专业翻译提示、筛选确实出现在译文中的最多 8 个学习词条。Prediction 增加 terms，旧服务仅返回 sentence 仍可用；错误词条不丢弃有效译文。
+qingjian-core::translation_trigger 统一解析光标前段落、计算 UTF-16 替换长度、提供专业翻译提示、筛选确实出现在译文中的最多 8 个学习词条。带空格的英文段落也能触发 `//`；纯中文仍按配置的整句翻译语言，英文和夹拉丁字母的段落由 `translation_target` 译成中文。单个词、网址和路径不触发。Prediction 增加 terms，旧服务仅返回 sentence 仍可用；错误词条不丢弃有效译文。
 
 qingjian-learning::TranslationBook 使用 translation-words.json 保存首次遇到的词、日期、中文含义、中文原句、英文译文及掌握状态。JSON 损坏时不覆盖原文件。复习 HTML 转义原文与模型文本，不读取外部资源。
 
 Windows IPC v8 的 RequestSelection 增加 paragraph 标记，TSF 通过异步编辑会话读取与核对原文范围。Android native 提供 C ABI，经 JNI UTF-8 字节数组调用同一个 Engine，避免 JNI modified UTF-8 损坏表情。
 
 
-出海舰 macOS 使用指南：`preferences/pages/guide.rs` 构建首个原生标签页；菜单 `OpenUsageGuide`（tag 6）直接选择该页。云服务页同时显示 `//` 触发、Enter 接受、Esc 取消的提示。用户说明同步 `docs/user/getting-started/quick-start.md`。
+AgentReins macOS 使用指南：`preferences/pages/guide.rs` 构建首个原生标签页；菜单 `OpenUsageGuide`（tag 6）直接选择该页。云服务页同时显示 `//` 触发、Enter 接受、Esc 取消的提示。用户说明同步 `docs/user/getting-started/quick-start.md`。
 
 Mac 中英文输入使用当前 `NSEvent.modifierFlags` 中的 Caps Lock / Shift 标志；全局修饰键查询仅用于无事件的显示路径。语言切换时旧编码原样上屏，下一字母进入新语言缓冲区。
 
-## 出海舰跨平台测试包
+## AgentReins 跨平台测试包
 
 `InputMode` 提供五笔、拼音、英文预设；`CapsLockBehavior` 提供中英切换和三模式循环。`LearningEncounter` 携带曝光时间，完成输入时收集并按本地日期写入 TranslationBook.daily_counts，同一输入片段的重复候选重绘去重，私密输入不收录。Android 仅报告实际可见候选，完成输入时读取词本后合并保存，避免覆盖设置页的掌握状态。构建脚本包含 glossary-en.qj，版本 0.1.1-test/code 2。Windows manual workflow 使用 MSVC、Inno Setup 7 和自包含设置运行时，安装包同时包含 x64/x86 TSF DLL。2026-10-10 Windows 构建、Clippy 和测试通过，Android 实际词库加载及五笔/拼音/英文切换内核检查通过；用户确认 Android 基本输入可用，Windows 尚待真机验收。
 

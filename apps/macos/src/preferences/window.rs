@@ -187,7 +187,7 @@ impl PreferencesWindow {
         ));
         content.addSubview(&status);
         let panel = PreferencesPanel::new(mtm, NSRect::new(NSPoint::ZERO, content_size));
-        panel.setTitle(&NSString::from_str("出海舰偏好设置"));
+        panel.setTitle(&NSString::from_str("AgentReins 偏好设置"));
         panel.setContentView(Some(&content));
         panel.center();
 

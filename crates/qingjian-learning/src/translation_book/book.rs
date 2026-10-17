@@ -132,7 +132,7 @@ impl TranslationBook {
     /// 生成可由系统浏览器打开的静态复习页，不载入外部资源。
     pub fn write_today_page(&self, date: &str, path: &Path) -> Result<(), std::io::Error> {
         let mut page = String::from(
-            "<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'><title>出海舰 · 今日学词</title><style>body{font:18px system-ui;max-width:800px;margin:40px auto;padding:20px;background:#f5f7fa;color:#182233}article{background:white;border-radius:12px;padding:20px;margin:16px 0}blockquote{margin:10px 0;color:#526176}</style><h1>今日学词</h1><p>来自已完成输入中的候选提示和已接受的英文译文。今日次数按有效输入片段及译文中的实际出现次数统计；重绘不重复计数。</p>",
+            "<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'><title>AgentReins · 今日学词</title><style>body{font:18px system-ui;max-width:800px;margin:40px auto;padding:20px;background:#f5f7fa;color:#182233}article{background:white;border-radius:12px;padding:20px;margin:16px 0}blockquote{margin:10px 0;color:#526176}</style><h1>今日学词</h1><p>来自已完成输入中的候选提示和已接受的英文译文。今日次数按有效输入片段及译文中的实际出现次数统计；重绘不重复计数。</p>",
         );
         let entries = self.today(date);
         if entries.is_empty() {

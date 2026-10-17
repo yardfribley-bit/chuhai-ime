@@ -23,6 +23,9 @@ pub struct GeneralPage {
     /// 学习语言。
     learning_language: Retained<NSPopUpButton>,
 
+    /// 整段 `//` 翻译的目标语言。
+    translation_language: Retained<NSPopUpButton>,
+
     /// 每页候选数。
     page_size: Retained<NSPopUpButton>,
 
@@ -106,6 +109,19 @@ impl GeneralPage {
             layout,
             mtm,
             "候选词右侧显示哪种语言的译词，只列出安装了释义表的语言；「不显示译文」同时关掉生词标记与释义兜底。",
+        );
+        let translation_language = row_popup(
+            layout,
+            mtm,
+            "整句翻译",
+            &["英语".to_owned(), "日语".to_owned(), "西班牙语".to_owned()],
+            Setting::TranslationLanguage,
+            target,
+        );
+        note(
+            layout,
+            mtm,
+            "中文段落末尾输入 //，译成这里选的语言。复制来的英文同样输入 //，直接译成中文。与上面的学习语言分开，改完即生效。",
         );
         let page_size_titles: Vec<String> = (1..=MAX_PAGE_SIZE).map(|n| n.to_string()).collect();
         let page_size = row_popup(
@@ -211,6 +227,7 @@ impl GeneralPage {
             input_mode,
             caps_behavior,
             learning_language,
+            translation_language,
             page_size,
             scheme,
             wubi,
@@ -252,6 +269,14 @@ impl GeneralPage {
                     .iter()
                     .position(|l| l.code() == general.learning_language)
             },
+        );
+        select(
+            &self.translation_language,
+            Some(match general.translation_language() {
+                Language::Japanese => 1,
+                Language::Spanish => 2,
+                _ => 0,
+            }),
         );
         select(&self.page_size, Some(general.page_size() - 1));
         select(

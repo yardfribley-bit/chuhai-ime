@@ -174,26 +174,26 @@ public final class ChuhaiInputService extends InputMethodService {
             ExtractedText extracted=connection.getExtractedText(new ExtractedTextRequest(),0);
             if (extracted==null || extracted.selectionStart!=extracted.selectionEnd || extracted.selectionStart<0) return false;
             CharSequence before=connection.getTextBeforeCursor(500,0); if(before==null) return false;
-            JSONObject job=nativeEngine.frame(command("trigger").put("before",before.toString()).put("truncated",extracted.startOffset+extracted.selectionStart>before.length()));
-            if(!job.has("source")) return false;
             android.content.SharedPreferences config=getSharedPreferences("cloud",MODE_PRIVATE);
+            JSONObject job=nativeEngine.frame(command("trigger").put("before",before.toString()).put("truncated",extracted.startOffset+extracted.selectionStart>before.length()).put("translation_language",config.getString("translation_language","en")));
+            if(!job.has("source")) return false;
             if(!config.getBoolean("enabled",false)) { showStatus("请先在设置中启用云翻译"); return false; }
             String endpoint=config.getString("url",""); if(!endpoint.startsWith("https://")) { showStatus("翻译接口需要 HTTPS"); return false; }
             source=job.getString("source"); original=source+"/"; originalCursor=extracted.startOffset+extracted.selectionStart; translationClient=connection;
             translated=null; terms=new JSONArray(); int token=++generation;
             showStatus("翻译中… 取消保留原文");
-            final String input=source, system=job.getString("system"), model=config.getString("model",""), key=config.getString("key","");
-            network.execute(() -> translate(token,endpoint,model,key,input,system)); return true;
+            final String input=source, system=job.getString("system"), target=job.optString("target","en"), model=config.getString("model",""), key=config.getString("key","");
+            network.execute(() -> translate(token,endpoint,model,key,input,system,target)); return true;
         } catch(Exception error) { showStatus("无法读取当前段落："+error.getMessage()); return false; }
     }
 
-    private void translate(int token,String endpoint,String model,String key,String input,String system) {
+    private void translate(int token,String endpoint,String model,String key,String input,String system,String target) {
         HttpURLConnection http=null;
         try {
             String url=endpoint.replaceAll("/+$",""); if(!url.endsWith("/chat/completions")) url+="/chat/completions";
             http=(HttpURLConnection)new URL(url).openConnection(); http.setRequestMethod("POST"); http.setConnectTimeout(15000); http.setReadTimeout(30000); http.setInstanceFollowRedirects(false); http.setDoOutput(true);
             http.setRequestProperty("Authorization","Bearer "+key); http.setRequestProperty("Content-Type","application/json");
-            JSONArray messages=new JSONArray().put(new JSONObject().put("role","system").put("content",system)).put(new JSONObject().put("role","user").put("content",new JSONObject().put("text",input).put("target_language","en").toString()));
+            JSONArray messages=new JSONArray().put(new JSONObject().put("role","system").put("content",system)).put(new JSONObject().put("role","user").put("content",new JSONObject().put("text",input).put("target_language",target).toString()));
             byte[] body=new JSONObject().put("model",model).put("messages",messages).put("max_tokens",1500).toString().getBytes(StandardCharsets.UTF_8);
             try(java.io.OutputStream out=http.getOutputStream()) { out.write(body); }
             if(http.getResponseCode()!=200) throw new IllegalStateException("接口返回 "+http.getResponseCode());

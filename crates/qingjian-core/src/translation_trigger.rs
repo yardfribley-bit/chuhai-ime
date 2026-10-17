@@ -2,25 +2,37 @@
 
 pub const TRANSLATE_SYSTEM_PROMPT: &str = "\
 你是一个输入法的翻译助手。用户在应用里选中了一段文字并按了翻译快捷键，你会收到 JSON：\
-text（选中的原文）、target_language（目标语言代码：zh 中文、en 英语、ja 日语）。\
-把 text 完整、自然地译成目标语言，保留原文的语气、换行与标点习惯；\
-原文已经是目标语言时：目标不是中文就改译成中文，目标是中文就原样返回。\
-网络安全文本使用专业术语：横向移动 lateral movement、权限提升 privilege escalation、远程代码执行 remote code execution。保留 CVE、IP、域名、命令、代码和产品名；不得添加原文没有的事实或提高确定程度。\
+text（选中的原文）、target_language（目标语言代码：zh 中文、en 英语、ja 日语、es 西班牙语）。\
+把 text 完整、自然地译成目标语言，保留原文的语气、换行与标点习惯；夹杂的外语单词和短语也要译成目标语言，不要留在译文里。\
+整段已经全部是目标语言、没有需要翻译的外语时：目标不是中文就改译成中文，目标是中文就原样返回。\
+网络安全文本：译成中文时用横向移动、权限提升、远程代码执行；译成英文时用 lateral movement、privilege escalation、remote code execution。保留 CVE、IP、域名、命令、代码和产品名；不得添加原文没有的事实或提高确定程度。\
 不要解释、不要加引号、不要加「译文：」之类的前缀。\
-输出 JSON：{\"sentence\": \"译文\", \"terms\": [{\"word\": \"译文中的英语单词或短语\", \"meaning\": \"对应中文含义\"}]}。目标为英语时最多选 8 个值得学习的词或短语，其他语言 terms 给空数组。";
+输出 JSON：{\"sentence\": \"译文\", \"terms\": [{\"word\": \"译文中的词或短语\", \"meaning\": \"对应中文含义\"}]}。目标为英语或西班牙语时最多选 8 个值得学习的词或短语，日语和中文 terms 给空数组。";
 
 /// 第二个 `/` 尚未写入应用时，返回原文及替换范围的 UTF-16 长度。
 /// `truncated` 表示系统读取窗口没有从文档开头开始。
+/// 中文段落可以直接触发。复制来的英文要像一句话（含空格），避免把 `https://` 的第二个斜杠当成翻译。
 pub fn paragraph_before_slash(before: &str, truncated: bool) -> Option<(&str, usize)> {
     let paragraph = before.rsplit(['\n', '\r']).next()?;
     let text = paragraph.strip_suffix('/')?;
     if (truncated && !before.contains(['\n', '\r']))
         || text.trim().is_empty()
-        || !text.chars().any(|c| ('\u{4e00}'..='\u{9fff}').contains(&c))
+        || !is_translatable_paragraph(text)
     {
         return None;
     }
     Some((text, paragraph.encode_utf16().count()))
+}
+
+/// 纯中文，或带空格的外文句子。单个词、网址和路径不触发。
+fn is_translatable_paragraph(text: &str) -> bool {
+    if text.chars().any(|c| ('\u{4e00}'..='\u{9fff}').contains(&c)) {
+        return true;
+    }
+    let has_letter = text
+        .chars()
+        .any(|c| c.is_ascii_alphabetic() || ('\u{00C0}'..='\u{024F}').contains(&c));
+    has_letter && text.chars().any(char::is_whitespace)
 }
 
 /// 模型词条必须出现在译文中，去重并限制数量，避免记录幻觉词条。
@@ -102,10 +114,24 @@ mod tests {
     }
 
     #[test]
-    fn refuses_truncated_paragraph_and_non_chinese_input() {
+    fn refuses_truncated_paragraph_urls_and_single_words() {
         assert_eq!(paragraph_before_slash("未读完的中文/", true), None);
         assert_eq!(paragraph_before_slash("https://example.com/", false), None);
+        assert_eq!(paragraph_before_slash("https:/", false), None);
+        assert_eq!(paragraph_before_slash("fix/", false), None);
         assert_eq!(paragraph_before_slash("//", false), None);
         assert_eq!(paragraph_before_slash("中文", false), None);
+    }
+
+    #[test]
+    fn english_paragraph_with_spaces_can_be_translated() {
+        let before = "We are fixing a vulnerability./";
+        assert_eq!(
+            paragraph_before_slash(before, false),
+            Some((
+                "We are fixing a vulnerability.",
+                before.encode_utf16().count()
+            ))
+        );
     }
 }

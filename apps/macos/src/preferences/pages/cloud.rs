@@ -45,7 +45,7 @@ impl CloudPage {
         note(
             layout,
             mtm,
-            "翻译用法：先完成中文选词 → 段落末尾连续输入 // → 等待英文预览 → 回车替换；Esc 取消并保留原文。完整说明见“使用指南”。",
+            "这几种用法都要先启用这里的服务。自己打的中文：段落末尾输入 //，按「通用 → 整句翻译」所选语言出预览。复制来的英文：同样在末尾输入 //，直接译成中文。看到的中英文也可以选中后按 ⌃⌥T 译成中文。回车替换，Esc 保留原文。完整说明见“使用指南”。",
         );
         let local_model = checkbox(mtm, "本地整句模型", Setting::LocalModelEnabled, target);
         row_checkbox(layout, &local_model);

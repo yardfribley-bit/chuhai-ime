@@ -140,11 +140,11 @@ impl CandidateView {
         }
     }
 
-    /// 青简渲染器 / 系统绘制。渲染器字体库加载失败就留在系统绘制。
+    /// AgentReins 渲染器 / 系统绘制。渲染器字体库加载失败就留在系统绘制。
     pub fn set_renderer(&self, renderer: CandidateRenderer) {
         let mut bitmap = self.ivars().bitmap.borrow_mut();
         match renderer {
-            CandidateRenderer::Qingjian if bitmap.is_none() => {
+            CandidateRenderer::AgentReins if bitmap.is_none() => {
                 *bitmap = BitmapPainter::new(&self.ivars().font.borrow());
             }
             CandidateRenderer::System if bitmap.is_some() => {

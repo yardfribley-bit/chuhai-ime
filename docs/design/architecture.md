@@ -181,7 +181,7 @@ Engine 查词的词库是一个列表：主词库（随包 `dict.qj`）、附加
 （它们其实是通用词：医疗器械、侵权行为）；基础词库从 22 万条降到 8.7 万条、`dict.qj` 10 MB → 3 MB，领域词库合计 13 万条 7 MB。
 分词统计语料时仍把 `dicts/*.tsv` 一起当词表，词表与拆分前一致，语言模型不用重跑。
 壳负责装配，附加词库有两处：随包的领域词库在 `.app` 的 `Resources/dicts/`，缺省关闭，配置 `[dictionaries] domains` 列出打开的
-（缺省只有 `idioms`，偏好设置「词库」页可勾选、不能移除）；用户自己导入的放用户目录 `dicts/`（macOS 是 `~/Library/Application Support/Qingjian/dicts/`），
+（缺省只有 `idioms`，偏好设置「词库」页可勾选、不能移除）；用户自己导入的放用户目录 `dicts/`（macOS 是 `~/Library/Application Support/AgentReins/dicts/`），
 目录里的 `.qj` / TSV 文件全部加载，配置 `[dictionaries] disabled` 列出要关掉的文件名；导入 = `qingjian_dictionary::import`
 把青简 TSV / Rime `.dict.yaml` / `.qj` 转成 `.qj` 放进去（Rime 的 YAML 头只取 `name:`，权重非整数当 1），
 移除 = 文件挪到 `dicts/removed/`，开关 = 改配置，三个动作之后 `Host::reload_dictionaries` 重新装配。这也是第三方词库带着自己许可证单独分发的落点：
@@ -339,7 +339,7 @@ CC-CEDICT 表（`dict-convert cedict`）保留为备用来源，覆盖面广但�
   `host/` 是进程级单例（一个 Engine + 一个候选窗口，`thread_local`，IMK 回调全在主线程；`mod.rs` 放结构体与 `with`，`init.rs` 启动加载、`config.rs` 热加载、`settings.rs` 菜单 / 偏好设置动作、`dictionaries.rs` 词库管理、`cloud.rs` 云端、`diagnostics.rs` 诊断与日志、`presenting.rs` 呈现），
   `host/` 下是会话状态 `session.rs`、联想轮询定时器 `predict_monitor.rs`、配置文件监视与定时落盘 `config_watch.rs`、
   短提示 `notice.rs`、翻译选中文字的任务 `translation_job.rs`、附加词库装配 `extra_dictionaries.rs` / `dictionary_info.rs`；
-  `imk/`：`controller/`（`mod.rs` 是类定义与按键分发，`text` / `command` / `translate` / `display` / `commit` 各管一段）用 `define_class!` 继承 `IMKInputController`（类名 `QingjianInputController`，
+  `imk/`：`controller/`（`mod.rs` 是类定义与按键分发，`text` / `command` / `translate` / `display` / `commit` 各管一段）用 `define_class!` 继承 `IMKInputController`（类名 `AgentReinsInputController`，
   与 Info.plist 的 `InputMethodServerControllerClass` 一致），只做按键 → Engine、Engine → 窗口；
   `client.rs` 用 `msg_send!` 封装 IMKTextInput（`setMarkedText:` / `insertText:` /
   `attributesForCharacterIndex:lineHeightRectangle:` 取光标矩形）；`modifiers.rs` / `secure_input.rs` 查系统状态；
@@ -350,8 +350,8 @@ CC-CEDICT 表（`dict-convert cedict`）保留为备用来源，覆盖面广但�
   `menu.rs` / `action.rs` / `target.rs` 是输入法菜单；
   `preferences/`：偏好设置窗口（`window.rs` 手排控件、`layout.rs` 逐页排版、`panel.rs` 关窗时切回激活策略、`setting/`（`Setting` 与 `SettingValue`）控件 ↔ 配置项、
   `target.rs` 一个 `changed:` 选择器、`key_recorder.rs` 快捷键录制按钮、`usage_page.rs` 「统计」页（数字格子与「几本《某书》」文案）、`about.rs` 「关于」页文案、`edit_menu.rs` 只有编辑项的主菜单、`file_dialog.rs` 导入词库的打开面板）；
-  `app/`：`paths.rs` 定位 `.app/Contents/Resources/`（词库、随包领域词库 `dicts/`）与 `~/Library/Application Support/Qingjian/`（用户数据），
-  `settings.rs` 是配置文件的运行时状态，`logging/` 只写 `~/Library/Logs/Qingjian/`（自己的 `LogFile` 按天分文件、留 7 天、被删重建），`bundle.rs` 读 Info.plist，
+  `app/`：`paths.rs` 定位 `.app/Contents/Resources/`（词库、随包领域词库 `dicts/`）与 `~/Library/Application Support/AgentReins/`（用户数据），
+  `settings.rs` 是配置文件的运行时状态，`logging/` 只写 `~/Library/Logs/AgentReins/`（自己的 `LogFile` 按天分文件、留 7 天、被删重建），`bundle.rs` 读 Info.plist，
   `input_source.rs` 是 `qingjian-macos --register`：走 Carbon TIS（`TISRegisterInputSource` + `TISEnableInputSource`，再起子进程 `--finish-register` 回读 `IsEnabled` 并 `TISSelectInputSource`，隔 3 秒二次确认）把 `.app` 注册成输入源并切成当前。两个坑：TIS 状态按进程缓存，本进程回读永远是旧值，只有新进程看得到；刚换过包的 3–5 秒内系统重扫会把刚启用的记录顶掉，所以要二次确认并启用。
 - **打包与分发**（`apps/macos/scripts/bundle.sh`）：版本号来自 workspace `Cargo.toml`，构建号是提交数，打包时用 PlistBuddy 写进 Info.plist。
   `--install` 装到 `~/Library/Input Methods/`（开发用）；`--pkg` 做 `target/pkg/qingjian-<版本>-macos-<arch>.pkg`：`pkgbuild` 组件包装到
@@ -370,12 +370,12 @@ CC-CEDICT 表（`dict-convert cedict`）保留为备用来源，覆盖面广但�
   而我们的缓冲区和候选框还在（2026-09-03 踩过）。
 - `define_class!` 的类在首次调用 `class()` 时才注册到 ObjC 运行时，而 IMKServer 初始化时就按
   Info.plist 的类名查找，找不到会**静默退回基类**，症状是按键全部透传、像在打英文。
-  必须先 `QingjianInputController::class()` 再建 IMKServer（2026-09-03 踩过）。
+  必须先 `AgentReinsInputController::class()` 再建 IMKServer（2026-09-03 踩过）。
 - `define_class!` 里返回 `bool` 的方法体内不能 `return`（宏会把返回类型换成 ObjC `BOOL`），
   逻辑放到 inherent impl 里，宏内只做转发。
-- Info.plist 约定：bundle id 是 `app.qingjian.inputmethod`（域名 qingjian.app 的反写 + 产品，其他平台外壳共用 `app.qingjian.` 前缀），`TISInputSourceID` 与它相同，`InputMethodConnectionName` 必须是 `<bundle id>_Connection`；
+- Info.plist 约定：bundle id 是 `app.agentreins.inputmethod`，其他平台外壳共用 `app.agentreins.` 前缀，`TISInputSourceID` 与它相同，`InputMethodConnectionName` 必须是 `<bundle id>_Connection`；
   `LSBackgroundOnly = true`；ad-hoc `codesign` 之后 Apple Silicon 才会加载。
-  **输入模式**：`ComponentInputModeDict` 里声明单模式 `app.qingjian.inputmethod.Hans`（TextInputSources.h 规定的位置），
+  **输入模式**：`ComponentInputModeDict` 里声明单模式 `app.agentreins.inputmethod.Hans`（TextInputSources.h 规定的位置），
   系统登记、启用、切换的都是模式，顶层 ID 只是父项，所以 `--register` 启用的是 `tsVisibleInputModeOrderedArrayKey` 的第一项；
   模式显示名在 `InfoPlist.strings` 按模式 ID 给，缺了对话框里显示裸 ID。没有模式时标准文本视图（备忘录等）切不过去、
   「添加输入法」列表也不出现（#31）。
@@ -471,15 +471,15 @@ CC-CEDICT 表（`dict-convert cedict`）保留为备用来源，覆盖面广但�
 - **TSF DLL**：`apps/windows/tsf`（package `qingjian-windows-tsf`，`cdylib`，产物 `qingjian_tsf.dll`，依赖官方 `windows` crate 的 COM `implement` 宏）。「引擎层」不是 Engine 而是连 Server 的**管道客户端** `EngineClient`（平台无关、可端到端测）；
   连不上 Server 时 DLL 自己把它拉起来（`com/service/launch.rs`）：Server 只在登录时由「启动」文件夹的快捷方式拉起，中途挂了以前只能等下次登录、期间静默吞键。
   用 `ShellExecuteW`（`uiAccess=true` 的 exe 用 `CreateProcess` 报 740），与 DLL 同目录的 `qingjian-server.exe`；
-  进程内 5 秒冷却 + 跨进程命名互斥体（`Local\QingjianServerLaunch`）保证多个应用同时发现 Server 不在时只起一个。
+  进程内 5 秒冷却 + 跨进程命名互斥体（`Local\AgentReinsServerLaunch`）保证多个应用同时发现 Server 不在时只起一个。
   COM 层：`DllGetClassObject` → `IClassFactory` → `#[implement(ITfTextInputProcessor, ITfKeyEventSink, ITfDisplayAttributeProvider)]` → `Activate` 挂击键 sink + 登记翻译保留键 + 语言栏中英按钮 + 连管道 → `OnKeyDown` 转发按键、经异步编辑会话（`TF_ES_READWRITE`，不带 SYNC）写组句 / 上屏；`DllRegisterServer` 写 InprocServer32 并经 `ITfInputProcessorProfiles` / `ITfCategoryMgr` 注册文本服务与各能力类别。
   组句拼音的**内联下划线**（对应 macOS marked text 下划线）走 TSF 显示属性协议（`com/display_attribute/`）：注册 `GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER` 类别 + 一个自定义显示属性 GUID（细实线、`TF_ATTR_INPUT`），
   `ITfDisplayAttributeProvider`（实现在 TextService 上）把 GUID 对应的 `TF_DISPLAYATTRIBUTE` 交给系统；收键写组句时用 `ITfCategoryMgr::RegisterGUID` 把 GUID 换成 atom，`SetValue` 进组句范围的 `GUID_PROP_ATTRIBUTE` 属性，宿主据此在拼音底下画线。
-  收键与运行细节记进 `%LOCALAPPDATA%\Qingjian\logs\tsf.<日期>.log`（与 Server / 设置程序同目录，按天一个文件、留 7 天；多进程追加同一文件）；候选窗口不再由 DLL 自绘（已搬到 Server 进程，见上「候选窗口」），DLL 侧只做 preedit 内联 + 上报光标矩形；云联想已接。
+  收键与运行细节记进 `%LOCALAPPDATA%\AgentReins\logs\tsf.<日期>.log`（与 Server / 设置程序同目录，按天一个文件、留 7 天；多进程追加同一文件）；候选窗口不再由 DLL 自绘（已搬到 Server 进程，见上「候选窗口」），DLL 侧只做 preedit 内联 + 上报光标矩形；云联想已接。
 - **交叉编译验证**：`qingjian-core` / `-dictionary` / `-format` / `-lm` / `-platform` / `apps/windows/{server,tsf}` 已能
   `cargo check --target x86_64-pc-windows-gnu` 通过（借此修掉 `qingjian-format` 里 unix 专有的 `Mmap::advise` 未 `cfg` 的移植 bug）；
   本机只 `check`，真正编译在 Windows 机器上做（`qingjian-neural` 的 candle 后端在 Windows 走 CPU，已接进 Server，见下「本地整句模型」）。
-- **本地整句模型（Server 进程，与 macOS 的 `host/model/mod.rs` 对齐）**：`server/src/dispatch/rescore/`。启动时 `find_model`（用户目录 `%APPDATA%\Qingjian\model\` 优先，否则随包 `data\model\`；`.qjm` 单文件或三件套目录）；`[model] enabled` 开着就起线程加载并预热（`ModelLoader`），下一次按键 / tick 接上 `set_async_sentence_scorer`。
+- **本地整句模型（Server 进程，与 macOS 的 `host/model/mod.rs` 对齐）**：`server/src/dispatch/rescore/`。启动时 `find_model`（用户目录 `%APPDATA%\AgentReins\model\` 优先，否则随包 `data\model\`；`.qjm` 单文件或三件套目录）；`[model] enabled` 开着就起线程加载并预热（`ModelLoader`），下一次按键 / tick 接上 `set_async_sentence_scorer`。
   Server 没有定时器：缓冲变化后 `schedule_rescoring` 起防抖，工人循环 `recv_timeout(router.next_tick())` 按 `RescoreState` 的节拍醒来（防抖 80 ms → `request_rescoring`；然后 20 ms 一次 `poll_rescoring`，最多等 2 s），DLL 组句期间每 80 ms 的 `Poll` 也顺带 `tick`。分到了重查一次、重建候选布局（云端词与整句补全留着）、由 Server 自绘的候选窗直接重画，DLL 下一次 `Poll` 拿到新帧更新内联 preedit；翻过页 / 动过高亮不动。热加载 `[model]` 变了才重载 / 卸载。
   前文：DLL 在**起组句的那次读写编辑会话**里顺手读选区起点前 64 个 UTF-16 单元（`com/edit/surrounding.rs::text_before_caret`，拼音还没插进去、不用再开一次会话），随 `ClientMessage::Surrounding` 单向送来。**密码框与私密输入**（2026-09-12 查了微软文档 / SampleIME / Chromium 源码后定）：
   TSF 规定键盘类 TIP 必须看上下文的 `GUID_COMPARTMENT_KEYBOARD_DISABLED`（微软文档明说密码框应禁用文本服务、`IS_PASSWORD` 只是标注不提供保护；Chromium 给密码框的上下文设的就是它），

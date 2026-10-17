@@ -1,13 +1,13 @@
 //! 可打印字符的处理：中英文模式、直输段、表达式与问字模式的分流。
 
-use super::{MAX_TRANSLATE_CHARS, QingjianInputController};
+use super::{AgentReinsInputController, MAX_TRANSLATE_CHARS};
 use crate::host;
 use crate::imk::{TextClient, secure_input};
 use objc2_app_kit::NSEventModifierFlags;
 use qingjian_core::QUESTION_PREFIX;
 use qingjian_platform::InputMode;
 
-impl QingjianInputController {
+impl AgentReinsInputController {
     pub(super) fn handle_text(
         &self,
         text: &str,
@@ -71,7 +71,10 @@ impl QingjianInputController {
                 let anchor = client.caret_rect();
                 let sent = host::with(|h| {
                     h.anchor = anchor;
-                    h.engine.request_english_translation(&text).is_some()
+                    let target = h.settings.config().general.translation_language();
+                    h.engine
+                        .request_paragraph_translation(&text, target)
+                        .is_some()
                 })
                 .unwrap_or(false);
                 if sent {

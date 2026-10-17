@@ -7,20 +7,20 @@ purge=0
 
 pkill -x qingjian-macos 2>/dev/null || true
 
-if [ -d "/Library/Input Methods/Qingjian.app" ]; then
-    echo "删除 /Library/Input Methods/Qingjian.app（需要管理员密码）"
-    sudo rm -rf "/Library/Input Methods/Qingjian.app"
-    sudo pkgutil --forget app.qingjian.inputmethod >/dev/null 2>&1 || true
+if [ -d "/Library/Input Methods/AgentReins.app" ]; then
+    echo "删除 /Library/Input Methods/AgentReins.app（需要管理员密码）"
+    sudo rm -rf "/Library/Input Methods/AgentReins.app"
+    sudo pkgutil --forget app.agentreins.inputmethod >/dev/null 2>&1 || true
 fi
-if [ -d "$HOME/Library/Input Methods/Qingjian.app" ]; then
-    echo "删除 ~/Library/Input Methods/Qingjian.app"
-    rm -rf "$HOME/Library/Input Methods/Qingjian.app"
+if [ -d "$HOME/Library/Input Methods/AgentReins.app" ]; then
+    echo "删除 ~/Library/Input Methods/AgentReins.app"
+    rm -rf "$HOME/Library/Input Methods/AgentReins.app"
 fi
 
 if [ "$purge" = 1 ]; then
-    rm -rf "$HOME/Library/Application Support/Qingjian" "$HOME/Library/Logs/Qingjian"
+    rm -rf "$HOME/Library/Application Support/AgentReins" "$HOME/Library/Logs/AgentReins"
     echo "学习数据、配置与日志已删除"
 else
-    echo "保留了 ~/Library/Application Support/Qingjian（学习数据、配置）与 ~/Library/Logs/Qingjian；要一起删请加 --purge"
+    echo "保留了 ~/Library/Application Support/AgentReins（学习数据、配置）与 ~/Library/Logs/AgentReins；要一起删请加 --purge"
 fi
 echo "已卸载。输入法列表里的「青简」条目会在注销再登录后消失。"

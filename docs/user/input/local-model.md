@@ -4,7 +4,7 @@ order: 5
 description: 随包的小模型在本机给整句候选重新排序：怎么生效、什么时候不生效、怎么关。
 ---
 
-青简随包带一个几十 MB 的小语言模型，组句时在本机给整句候选重新排一次序。全程离线，不联网、不发送任何内容。
+AgentReins 随包带一个几十 MB 的小语言模型，组句时在本机给整句候选重新排一次序。全程离线，不联网、不发送任何内容。
 
 ## 怎么生效
 
@@ -21,12 +21,12 @@ description: 随包的小模型在本机给整句候选重新排序：怎么生�
 
 ## 关掉
 
-「偏好设置 → 云服务」（Windows：「设置 → 云服务」）关闭「本地整句模型」，或配置文件 `[model]` 里 `enabled = false`（Linux 只有这一种，改完重启青简服务）。关闭后只用词库统计，与云联想互不影响。
+「偏好设置 → 云服务」（Windows：「设置 → 云服务」）关闭「本地整句模型」，或配置文件 `[model]` 里 `enabled = false`（Linux 只有这一种，改完重启 AgentReins 服务）。关闭后只用词库统计，与云联想互不影响。
 
 ## 自己的模型
 
 把 `.qjm` 模型文件放进用户数据目录的 `model/` 下，重启输入法后优先使用（训练仓库直接导出的 `model.safetensors`、`config.json`、`vocab.json` 三个文件放进去也认；两者都有时用 `.qjm`）：
 
-- **macOS**：`~/Library/Application Support/Qingjian/model/`
-- **Windows**：`%APPDATA%\Qingjian\model\`
-- **Linux**：`~/.local/share/qingjian/model/`
+- **macOS**：`~/Library/Application Support/AgentReins/model/`
+- **Windows**：`%APPDATA%\AgentReins\model\`
+- **Linux**：`~/.local/share/agentreins/model/`

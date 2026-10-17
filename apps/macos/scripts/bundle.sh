@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# 把 qingjian-macos 打包成 Qingjian.app。
+# 把 qingjian-macos 打包成 AgentReins.app。
 #
-#   scripts/bundle.sh            # 只打包到 target/Qingjian.app
+#   scripts/bundle.sh            # 只打包到 target/AgentReins.app
 #   scripts/bundle.sh --install  # 打包并安装到 ~/Library/Input Methods/，杀掉旧进程（开发用）
 #   scripts/bundle.sh --pkg      # 打包并做成 target/pkg/qingjian-<版本>-macos-<arm64|x86_64>.pkg（分发给测试者）
 #
@@ -20,7 +20,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-APP_NAME="Qingjian"
+APP_NAME="AgentReins"
 BIN_NAME="qingjian-macos"
 PROFILE="${PROFILE:-release}"
 APP="$ROOT/target/$APP_NAME.app"
@@ -65,7 +65,7 @@ BUILD_NUMBER="${QINGJIAN_BUILD_NUMBER:-$(git rev-list --count HEAD 2>/dev/null |
 cp apps/macos/scripts/uninstall.sh "$APP/Contents/Resources/uninstall.sh"
 # 开源许可与来源声明随分发物一起提供。
 cp LICENSE NOTICE.md "$APP/Contents/Resources/"
-# 输入源名字按系统语言本地化（中文系统显示「青简」，其他显示 Qingjian）
+# 输入源名字按系统语言本地化，两份 strings 都显示 AgentReins
 cp -R apps/macos/resources/*.lproj "$APP/Contents/Resources/"
 # 词库与释义表打进 Resources。data/generated/ 里有生成好的产品数据（自建词库 + 语言模型 + LLM 释义表）就用它，
 # 否则用 assets/sample/ 的样例。没有数据管道的机器跑 tools/release/data-fetch.sh 按 tools/release/data.lock 下载。
@@ -133,17 +133,17 @@ fi
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
 # 图标：应用图标从 assets/icon/logo.png 生成 .icns；输入法菜单图标直接用 assets/icon/menu.pdf（矢量，随 Info.plist 的 TISIconIsTemplate 按深浅色反色）
-ICONSET="$ROOT/target/Qingjian.iconset"
+ICONSET="$ROOT/target/AgentReins.iconset"
 rm -rf "$ICONSET" && mkdir -p "$ICONSET"
 for size in 16 32 128 256 512; do
   sips -z $size $size assets/icon/logo.png --out "$ICONSET/icon_${size}x${size}.png" >/dev/null
   double=$((size * 2))
   sips -z $double $double assets/icon/logo.png --out "$ICONSET/icon_${size}x${size}@2x.png" >/dev/null
 done
-if ! iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/Qingjian.icns"; then
-  python3 apps/macos/scripts/build-icns.py "$ICONSET" "$APP/Contents/Resources/Qingjian.icns"
+if ! iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AgentReins.icns"; then
+  python3 apps/macos/scripts/build-icns.py "$ICONSET" "$APP/Contents/Resources/AgentReins.icns"
 fi
-cp assets/icon/menu.pdf "$APP/Contents/Resources/qingjian-menu.pdf"
+cp assets/icon/menu.pdf "$APP/Contents/Resources/agentreins-menu.pdf"
 # 仓库放在 iCloud 同步的目录（Documents）时新建的 .app 会带上 Finder 扩展属性，codesign 会拒（detritus not allowed）：签名前清掉
 xattr -cr "$APP"
 # Apple Silicon 上未签名的二进制不会被系统加载。有 Developer ID 证书就正式签（开 hardened runtime，公证要求），
@@ -171,7 +171,7 @@ if [[ "${1:-}" == "--pkg" ]]; then
     /usr/libexec/PlistBuddy -c "Add :0:BundleIsRelocatable bool false" "$PKG_DIR/component.plist"
   pkgbuild --root "$PKG_DIR/root" --component-plist "$PKG_DIR/component.plist" \
     --install-location "/Library/Input Methods" --scripts apps/macos/pkg/scripts \
-    --identifier app.qingjian.inputmethod --version "$PKG_VERSION" "$PKG_DIR/$APP_NAME-component.pkg" >/dev/null
+    --identifier app.agentreins.inputmethod --version "$PKG_VERSION" "$PKG_DIR/$APP_NAME-component.pkg" >/dev/null
   cp apps/macos/pkg/resources/*.html "$PKG_DIR/resources/"
   cp LICENSE "$PKG_DIR/resources/license.txt"
   # 二进制只有一种架构，hostArchitectures 限定只在对应机器上装；另一种架构用 QINGJIAN_TARGET 再打一份
@@ -204,5 +204,5 @@ if [[ "${1:-}" == "--install" ]]; then
   # 系统会在下次切换到该输入法时重新拉起进程
   pkill -x "$BIN_NAME" 2>/dev/null || true
   echo "已安装到: $INSTALL_DIR/$APP_NAME.app"
-  echo "日志: ~/Library/Logs/Qingjian/"
+  echo "日志: ~/Library/Logs/AgentReins/"
 fi

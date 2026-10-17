@@ -17,6 +17,10 @@ pub(crate) const LANGUAGES: [(&str, &str); 4] = [
     ("不显示译文", "off"),
 ];
 
+/// 整段 `//` 翻译：界面名 + 配置写法。
+pub(crate) const TRANSLATION_LANGUAGES: [(&str, &str); 3] =
+    [("英语", "en"), ("日语", "ja"), ("西班牙语", "es")];
+
 /// 输入方案：界面名 + 配置写法，直接照 [`Scheme::ALL`] 建，不另抄一份。
 /// 数组长度取自 `ALL`，以后加方案时这里数组对不上就编不过。
 pub(crate) const SCHEMES: [(&str, &str); Scheme::ALL.len()] = [
@@ -74,6 +78,15 @@ pub(crate) fn view(settings: &Settings, context: &mut ViewContext<Settings>) -> 
                 &LANGUAGES,
                 &g.learning_language,
                 context.callback(Message::LearningLanguage),
+            ),
+        ),
+        field(
+            "整句翻译",
+            "中文段落末尾输入 //，译成这里选的语言。复制来的英文同样输入 //，直接译成中文。与上面的学习语言分开，改完即生效。",
+            string_combo(
+                &TRANSLATION_LANGUAGES,
+                g.translation_language().code(),
+                context.callback(Message::TranslationLanguage),
             ),
         ),
         field(
@@ -171,7 +184,7 @@ pub(crate) fn view(settings: &Settings, context: &mut ViewContext<Settings>) -> 
         ),
         field(
             "启用内置英文模式",
-            "关掉后出海舰固定中文模式：切换键与任务栏、悬浮状态条上的「中」「英」按钮都不再切到英文，需要英文时用系统快捷键（Win + Space）切到别的输入法。",
+            "关掉后 AgentReins 固定中文模式：切换键与任务栏、悬浮状态条上的「中」「英」按钮都不再切到英文，需要英文时用系统快捷键（Win + Space）切到别的输入法。",
             ToggleSwitch::new()
                 .is_on(g.english_mode)
                 .on_toggled(context.callback(Message::EnglishMode)),

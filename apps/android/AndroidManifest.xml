@@ -1,10 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.chuhaijian.ime">
   <uses-permission android:name="android.permission.INTERNET" />
-  <application android:label="出海舰" android:allowBackup="false" android:usesCleartextTraffic="false" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+  <application android:label="AgentReins" android:allowBackup="false" android:usesCleartextTraffic="false" android:theme="@android:style/Theme.Material.Light.NoActionBar">
     <activity android:name=".SettingsActivity" android:exported="true">
       <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
     </activity>
-    <service android:name=".ChuhaiInputService" android:label="出海舰" android:permission="android.permission.BIND_INPUT_METHOD" android:exported="true">
+    <service android:name=".ChuhaiInputService" android:label="AgentReins" android:permission="android.permission.BIND_INPUT_METHOD" android:exported="true">
       <intent-filter><action android:name="android.view.InputMethod"/></intent-filter>
       <meta-data android:name="android.view.im" android:resource="@xml/input_method"/>
     </service>

@@ -10,9 +10,9 @@ use crate::panel::{Message, Settings};
 /// QINGJIAN_VERSION 由 build.rs 给：-dev 版接 git 短哈希。
 pub(crate) const VERSION: &str = env!("QINGJIAN_VERSION");
 
-pub(crate) const WEBSITE_URL: &str = "https://qingjian.app";
+pub(crate) const WEBSITE_URL: &str = "https://www.cyberstroll.top";
 
-pub(crate) const REPOSITORY_URL: &str = "https://github.com/qingjian-team";
+pub(crate) const REPOSITORY_URL: &str = "https://github.com/yardfribley-bit/chuhai-ime";
 
 /// 与仓库根 `LICENSE` 一致。
 const LICENSE_NOTE: &str = "自由软件，GPL-3.0-or-later 许可证：可以自由使用、修改与再分发，修改后分发须同样开源。官方渠道免费。";
@@ -50,7 +50,7 @@ const ATTRIBUTIONS: &[(&str, &str)] = &[
     ),
 ];
 
-const PRIVACY_NOTE: &str = "出海舰没有自建云端。开着「自动检查更新」时每天向上游读一次版本列表，请求不带任何标识，上面可以关。开着云联想时，光标附近的文字与拼音会发给你在「云服务」页填的 AI 服务商（缺省 DeepSeek）的服务器，不经过出海舰服务器。整句翻译会发送待译原文；今日词本只保存在本机。「高级」页的输入日志只写在本机，可以关掉或清空。";
+const PRIVACY_NOTE: &str = "AgentReins 没有自建云端。开着「自动检查更新」时每天向上游读一次版本列表，请求不带任何标识，上面可以关。开着云联想时，光标附近的文字与拼音会发给你在「云服务」页填的 AI 服务商（缺省 DeepSeek）的服务器，不经过 AgentReins 服务器。整句翻译会发送待译原文；今日词本只保存在本机。「高级」页的输入日志只写在本机，可以关掉或清空。";
 
 const FEEDBACK_NOTE: &str = "遇到问题点「打包日志到桌面」，把生成的 zip 发给作者即可（含三个进程的日志与配置文件，不含密钥）。缺省日志不含你敲的内容；排查排序问题时作者可能请你在「高级」页临时打开详细日志。";
 
@@ -93,7 +93,7 @@ pub(crate) fn view(settings: &Settings, context: &mut ViewContext<Settings>) -> 
     }
     let body = StackPanel::new().spacing(12.0).children([
         TextBlock::new()
-            .text(format!("出海舰 Windows {VERSION}"))
+            .text(format!("AgentReins Windows {VERSION}"))
             .font_size(16.0)
             .font_weight(FontWeight::SEMI_BOLD)
             .into(),

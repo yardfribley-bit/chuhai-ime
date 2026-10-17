@@ -14,6 +14,26 @@ pub(super) use result::join_marked_typed;
 pub(super) use snapshot::QuerySnapshot;
 
 impl Engine {
+    /// 这一次编码下的个人优先：这段编码上选过的次数，加上当前上文后面已经连着出现够次数的接续。
+    /// 接续不到 [`HABIT_FOLLOW_MIN`] 次不计入，一次点选翻不过公共词频。
+    pub(super) fn habit_choice(&self, input: &str, text: &str) -> u32 {
+        let chosen = if input.is_empty() {
+            0
+        } else {
+            self.learner.choice_weight(input, text)
+        };
+        let followed = self
+            .learner
+            .user_ngram()
+            .map(|ngram| ngram.pair(self.chain.context().previous, text))
+            .unwrap_or(0);
+        if followed < HABIT_FOLLOW_MIN {
+            chosen
+        } else {
+            chosen.saturating_add(followed.min(20))
+        }
+    }
+
     /// 解析当前缓冲区并生成排好序的候选。**不带译文**，译文由 [`Self::annotate`] 补。
     ///
     /// 光标停在拼音中间时只按光标前的那段算候选（`ni|hao` 出 你），光标后的拼音留着，
@@ -260,7 +280,7 @@ impl Engine {
                 .map_or(item.coverage, |c| c.edit.to_original(item.coverage));
             let choice = letters
                 .get(..covered)
-                .map_or(0, |input| self.learner.choice_weight(input, hit.text));
+                .map_or(0, |input| self.habit_choice(input, hit.text));
             let log_prob = sentence::transition_log_prob(
                 &*self.language_model,
                 self.personal(),

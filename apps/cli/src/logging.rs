@@ -22,7 +22,7 @@ pub fn init() -> Result<Option<WorkerGuard>, io::Error> {
             std::fs::create_dir_all(&dir)?;
             let (writer, guard) = tracing_appender::non_blocking(tracing_appender::rolling::daily(
                 dir,
-                "qingjian.log",
+                "agentreins.log",
             ));
             (
                 Some(

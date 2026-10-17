@@ -97,7 +97,7 @@ impl PersonalGlossary {
 
     fn save_to(&self, path: &Path) -> Result<(), GlossaryError> {
         let mut text = format!(
-            "# 青简个人释义表（{}）：释义兜底从云端写来的，格式同随包释义表，可手改。词\\t[词性. ]译词[|读音]\n",
+            "# AgentReins 个人释义表（{}）：释义兜底从云端写来的，格式同随包释义表，可手改。词\\t[词性. ]译词[|读音]\n",
             self.language.code()
         );
         let mut words: Vec<&String> = self.entries.keys().collect();

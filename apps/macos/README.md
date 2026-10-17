@@ -9,9 +9,9 @@ macOS 输入法壳（InputMethodKit）。按键进 Core 的 `Engine`，候选画
 apps/macos/scripts/bundle.sh --install
 ```
 
-打包到 `target/Qingjian.app` 并装到 `~/Library/Input Methods/`，杀掉旧进程；切换一次输入法就会拉起新的。
-首次要在「系统设置 → 键盘 → 输入法 → 编辑 → +」的简体中文下添加「青简」，列表里没有就注销再登录。
-日志在 `~/Library/Logs/Qingjian/`，用户数据与 `config.toml` 在 `~/Library/Application Support/Qingjian/`。
+打包到 `target/AgentReins.app` 并装到 `~/Library/Input Methods/`，杀掉旧进程；切换一次输入法就会拉起新的。
+首次要在「系统设置 → 键盘 → 输入法 → 编辑 → +」的简体中文下添加「AgentReins」，列表里没有就注销再登录。
+日志在 `~/Library/Logs/AgentReins/`，用户数据与 `config.toml` 在 `~/Library/Application Support/AgentReins/`。
 
 ## 分发 pkg
 
@@ -36,8 +36,8 @@ pkg 装到 `/Library/Input Methods/`（需要管理员密码），装完 postins
 ## 卸载
 
 ```bash
-/Library/Input\ Methods/Qingjian.app/Contents/Resources/uninstall.sh          # 保留学习数据与配置
-/Library/Input\ Methods/Qingjian.app/Contents/Resources/uninstall.sh --purge  # 连数据、配置、日志一起删
+/Library/Input\ Methods/AgentReins.app/Contents/Resources/uninstall.sh          # 保留学习数据与配置
+/Library/Input\ Methods/AgentReins.app/Contents/Resources/uninstall.sh --purge  # 连数据、配置、日志一起删
 ```
 
 仓库里的 `apps/macos/scripts/uninstall.sh` 是同一个文件，两处安装位置都会清。

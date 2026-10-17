@@ -25,13 +25,13 @@ pub fn default_config_file() -> PathBuf {
     if cfg!(target_os = "macos")
         && let Some(home) = std::env::var_os("HOME")
     {
-        return PathBuf::from(home).join("Library/Application Support/Qingjian/config.toml");
+        return PathBuf::from(home).join("Library/Application Support/AgentReins/config.toml");
     }
     PathBuf::from("config.toml")
 }
 
 #[derive(Debug, Parser)]
-#[command(name = "qingjian", about = "青简输入法 Core 测试工具")]
+#[command(name = "agentreins", about = "AgentReins 输入法 Core 测试工具")]
 pub struct Args {
     /// 词库路径（TSV）。缺省：data/generated/dict.tsv 存在就用它，否则 assets/sample/dict.tsv
     #[arg(long)]
@@ -66,7 +66,7 @@ pub struct Args {
     #[arg(long)]
     pub user_dict: Option<PathBuf>,
 
-    /// 配置文件路径。缺省：~/Library/Application Support/Qingjian/config.toml（macOS）或 ./config.toml
+    /// 配置文件路径。缺省：~/Library/Application Support/AgentReins/config.toml（macOS）或 ./config.toml
     #[arg(long)]
     pub config: Option<PathBuf>,
 

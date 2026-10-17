@@ -109,7 +109,7 @@ collection behavior 是 CanJoinAllSpaces + FullScreenAuxiliary + Stationary。�
 | 按住 Shift 打的大写字母 | 进拼音缓冲区，与小写一样参与匹配（`⇧C` + `pan` → C盘），拼音行按敲的样子显示大写；原样上屏（回车 / 无候选）时还原大写。macOS 壳仍是「先把拼音原样上屏，再把这个大写字母交给应用」 |
 | ⌥ + 1–9 / ⇧⌥ + 1–9 | 上屏当前页第 N 个候选的**译词**而不是候选本身：⌥ 第一条，⇧⌥ 第二条（候选右侧有两个译词时）；日文不带注音；学习与拼音消耗同选了那个候选。没那条译词的候选吞掉按键不动。两组修饰键在配置 `[shortcut] translation` / `translation_second`（任意修饰键组合，偏好设置「快捷键」页点按钮录制），两组相同或为空整个退回缺省；说明里提醒避开 ⌃+数字（系统切桌面）和 ⌘+数字（应用切标签页）。控制器在 `handleEvent:client:` 里按键码认数字（修饰键会把数字变成 ¡™£），其余按键自己分发成 `handle_text` / `handle_command`。不能改用第二层协议 `inputText:key:modifiers:client:`：那会把回车、方向键当文本送来 |
 | ⇧ + 1–9（可改） | **删掉当前页第 N 个候选**：自己造的词、云端选过的词（用户词）整个删掉，本地不再出；词库里的词清掉对它的全部学习（选择次数、各输入串下的选择、个人 n-gram 里与它有关的转移），回到原来的排序；整句 / 快捷候选 / emoji 没什么可删。删完重新查一遍，结果那句话（「已删除用户词「X」」）灰字显示在拼音行右侧，敲下一键就没了；那格没有候选就吞掉按键。修饰键在 `[shortcut] delete_candidate`（缺省 ⇧，与译词键撞了退回缺省）。代价是组句中 ⇧1 不再是「上屏 + ！」，要先上屏；Core `Engine::forget` → `Learner::forget` / `forget_english` |
-| ⌃⌥T（可改） | **翻译选中的文字**：不在组句中、应用里有选区（≤ 500 字符）时，把选区交给云端翻译（`PredictionKind::Translate`，`Engine::request_translation`）：选区主要是汉字译成学习语言，有假名或拉丁字母不少于汉字就译成中文（Core `prediction::translation_target` 按字符统计定方向，提示词兜底「已是目标语言就译成中文」），候选窗口先显示「翻译中…」，译文到了作为唯一候选显示；回车 / 空格 / 1 用译文替换选区（`insertText:replacementRange:`），Esc 保留原文，其他键放弃并照常交给应用。云服务关着、密码框、应用不支持读选区（部分 Electron）时快捷键原样交回应用。快捷键在 `[shortcut] translate_selection`（修饰键 + 一个字母或数字，任意组合，偏好设置「快捷键」页录制；缺省 ⌃⌥T 避开了 ⌘T 这类应用常用键） |
+| ⌃⌥T（可改） | **翻译选中的文字**：不在组句中、应用里有选区（≤ 500 字符）时，把选区交给云端翻译（`PredictionKind::Translate`，`Engine::request_translation`）：纯汉字译成学习语言，夹了拉丁字母或假名、或没有汉字就译成中文（Core `prediction::translation_target`，提示词兜底「已是目标语言就译成中文」），候选窗口先显示「翻译中…」，译文到了作为唯一候选显示；回车 / 空格 / 1 用译文替换选区（`insertText:replacementRange:`），Esc 保留原文，其他键放弃并照常交给应用。云服务关着、密码框、应用不支持读选区（部分 Electron）时快捷键原样交回应用。快捷键在 `[shortcut] translate_selection`（修饰键 + 一个字母或数字，任意组合，偏好设置「快捷键」页录制；缺省 ⌃⌥T 避开了 ⌘T 这类应用常用键） |
 
 ### 整句转换（离线）
 
@@ -280,7 +280,7 @@ Core 按 `prediction::restates_question` 剔掉：与本地转出的问题相同
 | 云联想（勾选） | 写 `[predict] enabled`。配置开了但 Predictor 没接上（多半是没密钥）时不打勾，标题改成「云联想（启用失败，见日志）」 |
 | 模糊音 ▸ 九条（勾选） | 写 `[fuzzy]` 对应键 |
 | 偏好设置… | 打开设置窗口 |
-| 打开日志目录 | 访达打开 `~/Library/Logs/Qingjian/` |
+| 打开日志目录 | 访达打开 `~/Library/Logs/AgentReins/` |
 | 有新版本 x.y.z…（查到新版才出现） | 打开下载页，见 [update.md](update.md) |
 | （配置文件有错误：…） | 只在配置解析失败时出现，灰显；此时沿用上一份能用的配置，不让输入法退出 |
 | 青简 0.1.0 | 版本，灰显 |

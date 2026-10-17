@@ -1,3 +1,4 @@
+use qingjian_core::Language;
 use qingjian_platform::protocol::KeyModifiers;
 use qingjian_platform::{
     AppsConfig, CandidateRenderer, Config, KeyCombo, LayoutMode, PreeditMode, Scheme, SwitchKeys,
@@ -28,10 +29,10 @@ pub struct RouterConfig {
     /// 候选窗口外观（`[general] theme`）。
     pub theme: ThemeMode,
 
-    /// 候选窗口 / 状态条由出海舰渲染器还是 GDI 画（`[general] renderer`）。
+    /// 候选窗口 / 状态条由 AgentReins 渲染器还是 GDI 画（`[general] renderer`）。
     pub renderer: CandidateRenderer,
 
-    /// 候选窗口字体的字族名（`[general] font`），空为系统字体；只对出海舰渲染器生效。
+    /// 候选窗口字体的字族名（`[general] font`），空为系统字体；只对 AgentReins 渲染器生效。
     pub font: String,
 
     /// 拼音显示位置（`[general] preedit`）。
@@ -88,6 +89,9 @@ pub struct RouterConfig {
 
     /// 候选上是否显示辅码（`[general] aux_code_show`）。随帧下发给候选窗。
     pub aux_code_show: bool,
+
+    /// 段落 `//` 译成的语言（`[general] translation_language`）。
+    pub translation_language: Language,
 }
 
 impl RouterConfig {
@@ -139,6 +143,7 @@ impl From<&Config> for RouterConfig {
             wubi: config.general.wubi(),
             aux_code_key: config.general.aux_code_key(),
             aux_code_show: config.general.aux_code_show,
+            translation_language: config.general.translation_language(),
         }
     }
 }

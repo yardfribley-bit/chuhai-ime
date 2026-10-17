@@ -62,7 +62,7 @@
 - [x] 快捷候选（Core `shortcut`）：`rq` / `sj` / `xq` 出日期 / 时间 / 星期，`v` 开头表达式模式出四则运算结果与中文数字（见 candidate-ui.md）
 - [x] 中文标点（Core `punctuation`：全角映射、引号配对、数字后的点保持半角；组句期间 `,` `.` 把高亮候选上屏再补标点；配成翻页键时只翻页）
 - [x] 候选框顶部自绘 preedit 行与光标（不依赖应用画插入点）
-- [x] bundle id 改为 `app.qingjian.inputmethod`（2026-09-06，域名 qingjian.app 注册后；`TISInputSourceID` 与连接名同步，旧 id `com.yenharvey.qingjian` 的输入源要在系统设置里删掉重加）
+- [x] bundle id 改为 `app.agentreins.inputmethod`（2026-09-06，域名 qingjian.app 注册后；`TISInputSourceID` 与连接名同步，旧 id `com.yenharvey.qingjian` 的输入源要在系统设置里删掉重加）
 - [x] 中英切换：Caps Lock 亮着 = 英文模式（默认小写、Shift 大写、标点半角）；按住 Shift 的大写字母直接透传；切换输入源时强制收窗
 - [x] 英文模式候选（Core `english`，`Engine::set_english_mode`）：词表精确词 / 前缀补全 / 一处编辑纠正，Tab 与上下键选词（上下键动过之后空格也选），空格回车标点原样上屏；
   `[general] english_candidates` 可关；CLI `--english-mode`
@@ -189,7 +189,7 @@ Core 永远不联网。第一个实现接 DeepSeek（OpenAI 兼容接口），�
 - [x] 上下文来源：IMK `attributedSubstringFromRange:` 读 marked text 前后，应用不支持时退回本地输入历史
 - [x] 展示：云朵图标（SF Symbols `cloud`）区分，**不重排已有候选、不阻塞输入**
 - [x] 隐私：默认关闭；开启时菜单栏「中 / 英」带 ☁︎；Secure Input 绝不发送；观察长度在 Core 裁剪
-- [x] 配置：`~/Library/Application Support/Qingjian/config.toml` 的 `[predict]`，首次运行写模板；密钥可填配置或环境变量
+- [x] 配置：`~/Library/Application Support/AgentReins/config.toml` 的 `[predict]`，首次运行写模板；密钥可填配置或环境变量
 - [x] 问字模式：`?` + 问题拼音，`PredictionKind::Question` 走同一条 Predictor 通道、单独的提示词，答案带声调读音、不校验拼音（见 candidate-ui.md）
 - [x] 问字只答字不复述（2026-09-05）：请求带本地整句转换出的问题汉字（`guess`），提示词只答被问的字，`restates_question` 剔掉把问题写回来的「答案」
 - [x] 菜单开关、偏好设置窗口里的开关 / 接口 / 模型 / 密钥

@@ -33,7 +33,7 @@ pub fn socket_path() -> PathBuf {
                 .filter(|p| !p.is_empty())
                 .map(PathBuf::from)
                 .unwrap_or_else(|| {
-                    PathBuf::from(format!("/tmp/qingjian-{}", unsafe { libc::geteuid() }))
+                    PathBuf::from(format!("/tmp/agentreins-{}", unsafe { libc::geteuid() }))
                 })
                 .join("qingjian.sock")
         })

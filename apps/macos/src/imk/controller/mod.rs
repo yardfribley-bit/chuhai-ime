@@ -29,11 +29,11 @@ define_class!(
     // - 没有实现 Drop。
     #[unsafe(super(IMKInputController))]
     // 名字要和 Info.plist 的 InputMethodServerControllerClass 一致
-    #[name = "QingjianInputController"]
+    #[name = "AgentReinsInputController"]
     #[ivars = ()]
-    pub struct QingjianInputController;
+    pub struct AgentReinsInputController;
 
-    impl QingjianInputController {
+    impl AgentReinsInputController {
         /// IMKServer 为每个新会话调用的指定初始化方法，在这里放好 ivars。
         #[unsafe(method_id(initWithServer:delegate:client:))]
         fn init_with_server(
@@ -153,7 +153,7 @@ define_class!(
         }
     }
 
-    unsafe impl NSObjectProtocol for QingjianInputController {}
+    unsafe impl NSObjectProtocol for AgentReinsInputController {}
 );
 
 /// 翻译选中文字最多接受多少个字符：再长既慢又贵，也不是输入法该干的事。
@@ -181,11 +181,11 @@ fn digit_key(key_code: u16) -> Option<usize> {
     })
 }
 
-impl QingjianInputController {
-    /// 登录 / 锁屏窗口：输入源菜单里没有青简，loginwindow 却照样激活它，按键一律交还系统。
+impl AgentReinsInputController {
+    /// 登录 / 锁屏窗口：输入源菜单里没有 AgentReins，loginwindow 却照样激活它，按键一律交还系统。
     ///
-    /// TODO(#190): 临时防护。现象是开机登录界面打不进模式键（u / i），推断为按键进了青简的组句；
-    /// 日志只证实 loginwindow 会激活青简，按键是否真的送来没有复现（开 FileVault 的机器进不到这个界面）。
+    /// TODO(#190): 临时防护。现象是开机登录界面打不进模式键（u / i），推断为按键进了 AgentReins 的组句；
+    /// 日志只证实 loginwindow 会激活 AgentReins，按键是否真的送来没有复现（开 FileVault 的机器进不到这个界面）。
     /// 找到按键送进来的条件后改成针对它的判断，并确认别的系统界面有没有同样的情况。
     fn in_login_window(&self) -> bool {
         host::with(|h| h.engine.application() == Some(LOGIN_WINDOW)).unwrap_or(false)

@@ -147,7 +147,7 @@ impl Engine {
         Some(self.prediction_sequence)
     }
 
-    /// 把应用里选中的一段文字交给云端翻译（壳里快捷键触发）：主要是汉字就译成学习语言，是外文（拉丁字母、假名）就译成中文
+    /// 把应用里选中的一段文字交给云端翻译（壳里快捷键触发）：纯汉字译成学习语言，夹了拉丁字母或假名就译成中文
     /// （[`translation_target`]）。云联想关着、私密输入中、文字为空时不发，返回 `None`；
     /// 译文从 [`Self::poll_prediction`] 的 `sentence` 里出。不进学习、不动缓冲区。
     pub fn request_translation(&mut self, text: &str) -> Option<u64> {
@@ -157,9 +157,15 @@ impl Engine {
         self.request_translation_to(text, target)
     }
 
-    /// 出海写作始终译成英文，不受候选词学习语言影响。
-    pub fn request_english_translation(&mut self, text: &str) -> Option<u64> {
-        self.request_translation_to(text, "en".to_owned())
+    /// 段落末尾 `//`。纯中文译成配置里的英语、日语或西班牙语；
+    /// 英文或夹了拉丁字母的段落译成中文（[`translation_target`]）。
+    pub fn request_paragraph_translation(
+        &mut self,
+        text: &str,
+        configured: crate::candidate::Language,
+    ) -> Option<u64> {
+        let code = translation_target(text, configured).code().to_owned();
+        self.request_translation_to(text, code)
     }
 
     fn request_translation_to(&mut self, text: &str, target: String) -> Option<u64> {

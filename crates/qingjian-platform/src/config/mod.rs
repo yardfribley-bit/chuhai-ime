@@ -166,7 +166,7 @@ switch_mode = ["shift"]
 # 任意修饰键组合（option / shift / control / command 用 + 连），偏好设置里点按钮录制；别用 control+数字（系统切桌面）和 command+数字（应用切标签页）
 translation = "option"
 translation_second = "shift+option"
-# 把应用里选中的文字译成学习语言（要开着云服务）：译文先出现在候选窗口，回车替换选中的文字，Esc 保留原文
+# 把应用里选中的文字交给云翻译（要开着云服务）：中英混排或纯英文译成中文，纯中文译成学习语言。译文先出现在候选窗口，回车替换，Esc 保留原文
 # 修饰键 + 一个字母或数字，任意组合；避开 ⌘T 这类应用常用键
 translate_selection = "control+option+t"
 # 数字键配这些修饰键删掉候选：用户词（云端选过的、自动造的）整个删掉，词库里的词清掉对它的学习记录。组句中要打感叹号先把词上屏
@@ -186,7 +186,7 @@ switch_mode = ["shift"]
 # 任意修饰键组合（alt / shift / ctrl / win 用 + 连）。Alt+数字会被 Windows 当菜单快捷键截走，缺省用 Ctrl；组句时才拦，不打字时照常放行给应用
 translation = "ctrl"
 translation_second = "shift+ctrl"
-# 把应用里选中的文字译成学习语言（要开着云服务）：译文先出现在候选窗口，回车替换选中的文字，Esc 保留原文
+# 把应用里选中的文字交给云翻译（要开着云服务）：中英混排或纯英文译成中文，纯中文译成学习语言。译文先出现在候选窗口，回车替换，Esc 保留原文
 translate_selection = "ctrl+alt+t"
 # 数字键配这些修饰键删掉候选：用户词（云端选过的、自动造的）整个删掉，词库里的词清掉对它的学习记录。组句中要打感叹号先把词上屏
 delete_candidate = "shift"
@@ -197,11 +197,13 @@ delete_candidate = "shift"
 /// 首次运行写出的模板：默认值全部列出并注释，用户改一处即可。`[shortcut]` 的修饰键与 `[apps]` 分平台，
 /// 见 [`template_shortcut_keys!`] / [`template_apps!`]。
 pub const TEMPLATE: &str = concat!(
-    r#"# 青简输入法配置。保存后自动生效；也可以在菜单栏的输入法菜单里改。
+    r#"# AgentReins 输入法配置。保存后自动生效；也可以在菜单栏的输入法菜单里改。
 
 [general]
 # 学习语言（en 英语 / ja 日语 / es 西班牙语 / off 不显示译文）：候选旁显示哪种语言的译文，要有对应的释义表才生效
 learning_language = "en"
+# 中文段落末尾 // 译成哪种语言：en 英语 / ja 日语 / es 西班牙语。英文段落固定译成中文。与上面的学习语言分开设置
+translation_language = "en"
 # 每页候选数（1–9）
 page_size = 9
 # 翻页键对：前一个上一页、后一个下一页。可选 "[]" 或 ",."；选 ",." 的话组句中敲逗号句号是翻页而不是上屏加标点
@@ -213,9 +215,9 @@ layout = "vertical"
 # 横排时 ↑ / ↓ 把单行展开成 6 行矩阵并换行（一行一页候选），← / → 改为在候选之间移动（拼音光标用 ⌥←/→、⌘←/→），
 # Esc 第一下先收回单行。缺省 false：横排下 ↑ / ↓ 逐个移动高亮、← / → 移动拼音光标，与以前一样。只有 macOS 用
 horizontal_grid = false
-# 候选窗口由谁绘制：qingjian 青简渲染器（各平台一致，主题走它）/ system 系统原生绘制（渲染器有问题时的退路）
-renderer = "qingjian"
-# 候选窗口字体（字族名，如 "LXGW WenKai"）；空为系统字体。只对青简渲染器生效，没装这个字体时自动回到系统字体
+# 候选窗口由谁绘制：qingjian AgentReins 渲染器（各平台一致，主题走它）/ system 系统原生绘制（渲染器有问题时的退路）
+renderer = "agentreins"
+# 候选窗口字体（字族名，如 "LXGW WenKai"）；空为系统字体。只对 AgentReins 渲染器生效，没装这个字体时自动回到系统字体
 font = ""
 # 组句中的拼音显示在哪：both 行内和候选窗口 / inline 只在行内 / window 只在候选窗口（应用里不放 marked text）
 preedit = "both"
@@ -230,7 +232,7 @@ chinese_first = false
 # 缓冲区参与匹配，这样 Cpan 与 cpan 一样能出「C盘」。英文模式与英文直输段（no-Way）不受影响
 shift_letter = "passthrough"
 # 内置英文模式：开着时单击切换键（[shortcut] switch_mode）或 Caps Lock 亮着进英文模式
-# 关掉后青简保持中文模式，切换键与语言栏按钮都不再切过去；要打英文请用系统快捷键（Win+Space）切到别的输入法。只有 Windows 用，macOS 的中英切换是 Caps Lock
+# 关掉后 AgentReins 保持中文模式，切换键与语言栏按钮都不再切过去；要打英文请用系统快捷键（Win+Space）切到别的输入法。只有 Windows 用，macOS 的中英切换是 Caps Lock
 english_mode = true
 # 中文模式下（没在组句时）敲的标点转全角：, . ? ! : ; ( ) 等，数字后面的 . 保持半角。Windows 上悬浮状态条的「，。」格可以点着切；macOS 在偏好设置中选择默认中文标点模式
 full_width_punctuation = true
@@ -253,7 +255,7 @@ shuangpin_raw_preedit = false
 # 两边都出候选，编码打全的五笔词在前、其次拼音（打不出的字直接打拼音）；候选旁的译文、生词记录与学习照常。
 # 只用五笔的话把 scheme 写成 none；第 5 个字母起五笔已经查不到东西，自动只剩拼音。
 wubi = ""
-# 日志级别：info 缺省 / debug 详细（会记录敲的拼音与上屏的文字，配合作者排查问题时再开）。日志在 ~/Library/Logs/Qingjian/
+# 日志级别：info 缺省 / debug 详细（会记录敲的拼音与上屏的文字，配合作者排查问题时再开）。日志在 ~/Library/Logs/AgentReins/
 log_level = "info"
 # 输入日志：每次上屏记一行到数据目录的 input-log.jsonl（敲的键、看到的候选、选了什么），只写在这台电脑上，不上传；
 # 用来离线评测排序和训练个人模型。false 不记；「高级」页可以清空
@@ -341,7 +343,7 @@ sentence = true
 
 [status_bar]
 # 桌面上常驻、可拖动的悬浮状态条（Windows）：「中 / 英」格点一下切换模式（开着双拼时还显示方案名）、「，。」格切全角 / 半角标点、齿轮打开设置。
-# 只在当前输入法是青简时显示；与任务栏的中 / 英指示器并存
+# 只在当前输入法是 AgentReins 时显示；与任务栏的中 / 英指示器并存
 # 默认关；开着时可以拖到任意位置，拖到哪下次还在哪（拖动结束时把位置写进下面的 x / y，不用手填）
 enabled = false
 # 记住的屏幕位置（物理像素，拖动后自动写入）；留空则首次出现在屏幕右下角
@@ -349,7 +351,7 @@ enabled = false
 # y = 0
 
 [update]
-# 检查更新：每天向官网（qingjian.app）读一次版本索引，有新版在菜单与设置的「关于」页提示；请求不带任何标识，不自动下载安装
+# 检查更新：每天向官网（www.cyberstroll.top）读一次版本索引，有新版在菜单与设置的「关于」页提示；请求不带任何标识，不自动下载安装
 check = true
 # 渠道：stable 只看正式版；beta 还会提示测试版（alpha / beta / rc）
 channel = "stable"
@@ -648,6 +650,7 @@ mod tests {
         assert_eq!(config.general.layout, LayoutMode::Horizontal);
         assert_eq!(config.general.preedit, PreeditMode::Window);
         assert_eq!(config.general.learning_language, "en");
+        assert_eq!(config.general.translation_language, "en");
         assert!(config.general.english_candidates);
         assert!(!config.general.traditional);
         assert_eq!(config.general.shuangpin(), None);
@@ -701,7 +704,7 @@ mod tests {
     fn writes_create_the_data_directory_for_a_fresh_account() {
         let dir = std::env::temp_dir().join("qingjian-config-fresh-account-test");
         let _ = std::fs::remove_dir_all(&dir);
-        let path = dir.join("Qingjian").join("config.toml");
+        let path = dir.join("AgentReins").join("config.toml");
         assert!(Config::write_template_if_missing(&path).unwrap());
         assert!(!Config::write_template_if_missing(&path).unwrap());
         assert_eq!(std::fs::read_to_string(&path).unwrap(), TEMPLATE);
@@ -718,7 +721,7 @@ mod tests {
         let _ = std::fs::remove_file(&path);
         Config::set_bool(&path, "predict", "enabled", true).unwrap();
         let text = std::fs::read_to_string(&path).unwrap();
-        assert!(text.contains("# 青简输入法配置"));
+        assert!(text.contains("# AgentReins 输入法配置"));
         assert!(Config::load(&path).unwrap().predict.enabled);
         let _ = std::fs::remove_file(&path);
     }

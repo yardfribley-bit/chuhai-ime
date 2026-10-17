@@ -28,6 +28,9 @@ pub struct GeneralConfig {
     /// 学习语言（ISO 639-1，`en` / `ja` / `es`；`off` 不显示译文）：候选旁显示哪种语言的译文。要有对应的释义表文件才生效。
     pub learning_language: String,
 
+    /// `//` 整段翻译的目标语言（`en` / `ja` / `es`）。与候选旁的学习语言分开，由用户自己选；不认识的写法按英语。
+    pub translation_language: String,
+
     /// 每页候选数，1–9。
     pub page_size: usize,
 
@@ -43,10 +46,10 @@ pub struct GeneralConfig {
     /// 横排时上 / 下键把单行展开成多行矩阵（左 / 右键改为移动候选高亮，Esc 第一下先收回）。缺省关：横排下的按键与以前一样。只有 macOS 用。
     pub horizontal_grid: bool,
 
-    /// 候选窗口由青简渲染器还是系统原生绘制。
+    /// 候选窗口由 AgentReins 渲染器还是系统原生绘制。
     pub renderer: CandidateRenderer,
 
-    /// 候选窗口字体的字族名；空为系统字体。只对青简渲染器生效，没装这个字体时回到系统字体。
+    /// 候选窗口字体的字族名；空为系统字体。只对 AgentReins 渲染器生效，没装这个字体时回到系统字体。
     pub font: String,
 
     /// 组句中的拼音显示在行内、候选窗口还是两处都显示。
@@ -65,7 +68,7 @@ pub struct GeneralConfig {
     /// 收进组句才能打出「C盘」这类混杂词（`Cpan` 与 `cpan` 一样匹配）。
     pub shift_letter: ShiftLetter,
     /// 内置英文模式：开着时单击切换键（`[shortcut] switch_mode`）或按 Caps Lock 能进英文模式。
-    /// 关掉后青简保持中文模式，切换键与语言栏按钮都不再切过去；要打英文请用系统快捷键切到别的输入法。
+    /// 关掉后 AgentReins 保持中文模式，切换键与语言栏按钮都不再切过去；要打英文请用系统快捷键切到别的输入法。
     pub english_mode: bool,
 
     /// 中文模式下不在组句时敲的标点转成全角（`，。？！` 等，数字后的 `.` 保持半角）。
@@ -123,6 +126,7 @@ impl Default for GeneralConfig {
     fn default() -> Self {
         Self {
             learning_language: "en".to_owned(),
+            translation_language: "en".to_owned(),
             page_size: MAX_PAGE_SIZE,
             page_keys: PAGE_KEY_OPTIONS[0].to_owned(),
             theme: ThemeMode::default(),
@@ -204,6 +208,20 @@ impl GeneralConfig {
                 tracing::warn!(key = legacy, "不认识的双拼方案，按全拼");
                 Scheme::Pinyin
             }
+        }
+    }
+
+    /// `//` 整段翻译译成哪一种语言。只认英语、日语、西班牙语，其余按英语。
+    pub fn translation_language(&self) -> qingjian_core::Language {
+        match self
+            .translation_language
+            .trim()
+            .to_ascii_lowercase()
+            .as_str()
+        {
+            "ja" | "jp" | "japanese" => qingjian_core::Language::Japanese,
+            "es" | "es-es" | "spanish" => qingjian_core::Language::Spanish,
+            _ => qingjian_core::Language::English,
         }
     }
 
@@ -418,5 +436,29 @@ mod tests {
         general.scheme = "pinyin".to_owned();
         assert_eq!(general.scheme(), Scheme::Pinyin);
         assert!(!general.is_zhuyin());
+    }
+
+    #[test]
+    fn paragraph_translation_language_is_chosen_by_the_user() {
+        let mut general = GeneralConfig::default();
+        assert_eq!(
+            general.translation_language(),
+            qingjian_core::Language::English
+        );
+        general.translation_language = "ja".to_owned();
+        assert_eq!(
+            general.translation_language(),
+            qingjian_core::Language::Japanese
+        );
+        general.translation_language = " ES ".to_owned();
+        assert_eq!(
+            general.translation_language(),
+            qingjian_core::Language::Spanish
+        );
+        general.translation_language = "off".to_owned();
+        assert_eq!(
+            general.translation_language(),
+            qingjian_core::Language::English
+        );
     }
 }

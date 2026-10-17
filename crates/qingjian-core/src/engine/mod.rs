@@ -48,7 +48,7 @@ pub use marked::{AuxSegment, MarkedKind, MarkedSegment};
 pub use mode_keys::{ModeKeys, QUESTION_PREFIX};
 pub use prediction::{
     CloudWord, LearningTerm, NoPredictor, Prediction, PredictionKind, PredictionPolicy,
-    PredictionRequest, Predictor, SurroundingText,
+    PredictionRequest, Predictor, SurroundingText, translation_target,
 };
 
 pub use query::Query;
@@ -342,6 +342,10 @@ const AUTO_WORD_MAX_CHARS: usize = 4;
 /// 用户自己点选的词，转移记几份；整句路径里顺带的记一份。
 /// 整句是模型自己算出来的，按空格接受它会把这条路径喂回模型，形成自我强化；用户明确改选的词要能压过这种回声。
 pub const EXPLICIT_TRANSITION_WEIGHT: u32 = 2;
+
+/// 同一个词在当前上文后面至少出现这么多次，才在这一次编码的候选里排到公共词频前面。
+/// 一次点选记 [`EXPLICIT_TRANSITION_WEIGHT`] 份，所以要连续两次点选才过线。
+pub const HABIT_FOLLOW_MIN: u32 = EXPLICIT_TRANSITION_WEIGHT * 2;
 
 /// 拼音短于这个字母数不联想：一两个字母的意图太模糊，白花一次请求。
 const MIN_PREDICTION_LETTERS: usize = 2;

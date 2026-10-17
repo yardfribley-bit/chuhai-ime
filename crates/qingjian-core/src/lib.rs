@@ -41,7 +41,7 @@ pub use engine::{
     Prediction, PredictionKind, PredictionPolicy, PredictionRequest, Predictor, QUESTION_PREFIX,
     Query, RESCORE_CONTEXT_CHARS, RawPreedit, SurroundingText, Timings, Translator, Usage,
     UsageMeter, UsageSummary, VocabularySummary, VocabularyTracker, book_scale,
-    is_valid_aux_code_key,
+    is_valid_aux_code_key, translation_target,
 };
 pub use fuzzy::FuzzyRules;
 pub use history::InputHistory;

@@ -11,6 +11,8 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -40,6 +42,10 @@ public final class SettingsActivity extends Activity {
         text("设置即时保存；返回输入框后生效。点键盘左上角可选择五笔、拼音、英文；123 打开数字符号。",15);
         android.content.SharedPreferences config=getSharedPreferences("cloud",MODE_PRIVATE);
         text("整句云翻译",22); text("仅在你主动触发翻译时，发送当前中文段落给你配置的服务。密码框不翻译。接口费用由服务商收取。",15);
+        text("译成",16);
+        String[] languageNames={"英语","日语","西班牙语"}; String[] languageCodes={"en","ja","es"};
+        Spinner language=new Spinner(this); language.setAdapter(new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,languageNames));
+        String savedLanguage=config.getString("translation_language","en"); int languageIndex=0; for(int i=0;i<languageCodes.length;i++) if(languageCodes[i].equals(savedLanguage)) languageIndex=i; language.setSelection(languageIndex); root.addView(language);
         CheckBox enabled=new CheckBox(this); enabled.setText("启用云翻译"); enabled.setChecked(config.getBoolean("enabled",false)); root.addView(enabled);
         EditText url=field("兼容接口地址，例如 https://服务商/v1",config.getString("url",""),false);
         EditText model=field("模型名称",config.getString("model",""),false);
@@ -48,7 +54,7 @@ public final class SettingsActivity extends Activity {
         button("保存设置",() -> {
             String endpoint=url.getText().toString().trim();
             if(enabled.isChecked() && (!endpoint.startsWith("https://") || model.getText().toString().trim().isEmpty() || key.getText().toString().trim().isEmpty())) { state.setText("请填写 HTTPS 接口、模型和密钥"); return; }
-            config.edit().putBoolean("enabled",enabled.isChecked()).putString("url",endpoint).putString("model",model.getText().toString().trim()).putString("key",key.getText().toString().trim()).apply(); state.setText("已保存");
+            config.edit().putBoolean("enabled",enabled.isChecked()).putString("url",endpoint).putString("model",model.getText().toString().trim()).putString("key",key.getText().toString().trim()).putString("translation_language",languageCodes[language.getSelectedItemPosition()]).apply(); state.setText("已保存");
         });
         button("今日学词",this::showWords);
         button("开源许可与数据来源",() -> {

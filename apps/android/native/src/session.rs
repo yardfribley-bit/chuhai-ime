@@ -113,7 +113,17 @@ impl Session {
                         message["truncated"].as_bool().unwrap_or(false),
                     ) {
                         Some((source, length)) => {
-                            json!({"source": source, "length": length, "system": qingjian_core::translation_trigger::TRANSLATE_SYSTEM_PROMPT})
+                            let configured = match message["translation_language"].as_str() {
+                                Some("ja" | "jp" | "japanese") => Language::Japanese,
+                                Some("es" | "es-es" | "spanish") => Language::Spanish,
+                                _ => Language::English,
+                            };
+                            json!({
+                                "source": source,
+                                "length": length,
+                                "system": qingjian_core::translation_trigger::TRANSLATE_SYSTEM_PROMPT,
+                                "target": qingjian_core::translation_target(source, configured).code(),
+                            })
                         }
                         None => json!({}),
                     },

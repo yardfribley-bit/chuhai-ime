@@ -1,4 +1,4 @@
-# 出海舰 · Chuhai IME
+# AgentReins 输入法
 
 面向中文使用者的开源输入法：用五笔或拼音表达，再把整段中文翻成英文。适合在 X 发帖、跨语言聊天和专业写作。
 
@@ -20,15 +20,15 @@ Apple Silicon Mac 暂无预编译安装包，需自行编译。以上均为测�
 
 [Windows / Android 发布说明与校验和](https://github.com/yardfribley-bit/chuhai-ime/releases/tag/v0.1.5-dev-crossplatform) · [Mac 发布说明与校验和](https://github.com/yardfribley-bit/chuhai-ime/releases/tag/v0.1.5-dev-build238) · [全部版本](https://github.com/yardfribley-bit/chuhai-ime/releases)
 
-Windows 运行 `.exe` 安装后选择出海舰输入法；Android 安装 `.apk` 后，在系统键盘设置中启用并选择“出海舰”。翻译功能按需配置自己的接口和密钥，安装包不包含个人密钥。
+Windows 运行 `.exe` 安装后选择 AgentReins 输入法；Android 安装 `.apk` 后，在系统键盘设置中启用并选择“AgentReins”。翻译功能按需配置自己的接口和密钥，安装包不包含个人密钥。
 
 ## 快速使用（macOS）
 
-### 1. 安装并选择出海舰
+### 1. 安装并选择 AgentReins
 
 [下载 Mac Intel 测试包（build238）](https://github.com/yardfribley-bit/chuhai-ime/releases/tag/v0.1.5-dev-build238)。Apple Silicon 暂需自行编译，尚未完成本机验收。测试包未公证，安装时按 macOS 的安全提示操作。
 
-安装 Mac 测试包后，在“系统设置 → 键盘 → 文本输入 → 编辑”中添加并选择“出海舰”。若输入源未立即出现，请注销后重新登录。
+安装 Mac 测试包后，在“系统设置 → 键盘 → 文本输入 → 编辑”中添加并选择“AgentReins”。若输入源未立即出现，请注销后重新登录。
 
 菜单提供 **五笔／拼音／英文** 三种模式。Mac 的 **Caps Lock** 默认切换中英文，并保留上一次中文方案；通用设置也可选择按 Caps Lock 依次切换三个模式。大写英文按住 Shift。Windows 默认单击 Shift 切换中英文，设置中可选择三种预设；Android 在左上角菜单选择三种模式，底部提供中/英切换键。
 
@@ -50,19 +50,23 @@ OpenRouter 配置示例：
 | 模型 | `deepseek/deepseek-v3.2`（或服务商提供的其他兼容模型） |
 | API 密钥 | 在本机密钥输入框填写自己的密钥 |
 
-密钥需要可用额度。云翻译费用由所选服务商收取；出海舰不提供免费额度或自建翻译服务器。[OpenRouter 接口说明](https://openrouter.ai/docs/quickstart)
+密钥需要可用额度。云翻译费用由所选服务商收取；AgentReins 不提供免费额度或自建翻译服务器。[OpenRouter 接口说明](https://openrouter.ai/docs/quickstart)
 
-### 3. 中文 → 英文
+### 3. 中文整句翻译
 
-1. 输入一段中文，先完成选词，让中文出现在文本框里。
-2. 将光标放在当前段落末尾，连续输入两个**半角斜杠 `//`**。
-3. 等待英文预览，按 **Enter** 确认替换。
-4. 按 **Esc** 取消；取消、失败或超时会保留原文。
+1. 在「偏好设置 → 通用 → 整句翻译」选择英语、日语或西班牙语。
+2. 输入一段中文，先完成选词，让中文出现在文本框里。
+3. 将光标放在当前段落末尾，连续输入两个**半角斜杠 `//`**。
+4. 等待所选语言的预览，按 **Enter** 确认替换。
+5. 按 **Esc** 取消；取消、失败或超时会保留原文。
 
 ```text
 输入：我们正在修复一个漏洞。//
-预览：We are fixing a vulnerability.
-按 Enter：英文替换当前中文段落和触发斜杠。
+预览：所选语言的译文（英语时如 We are fixing a vulnerability.）
+按 Enter：译文替换当前中文段落和触发斜杠。
+
+复制的英文：We are fixing a vulnerability.//
+预览：我们正在修复一个漏洞。
 ```
 
 译文由所选模型生成，实际措辞可能不同。第一个 `/` 正常输入，第二个 `/` 才触发翻译。等待时不要移动光标或切换应用；长文章请分段输入。部分应用不支持读取或替换前文，仍需逐应用验证兼容性。
@@ -120,7 +124,7 @@ apps/macos/scripts/bundle.sh --pkg
 
 请勿把 API 密钥、个人配置、输入日志或词本提交到 GitHub。
 
-出海舰基于 [Qingjian 0.1.4](https://github.com/qingjian-team/qingjian) 修改，遵循 **GPL-3.0-or-later**。必要的原作者署名、数据许可及历史内部标识保留，详情见 [NOTICE](NOTICE.md) 和 [LICENSE](LICENSE)。产品界面使用“出海舰”；当前图标仍沿用上游资源，正式发布前计划替换。
+AgentReins 基于 [Qingjian 0.1.4](https://github.com/qingjian-team/qingjian) 修改，遵循 **GPL-3.0-or-later**。必要的原作者署名、数据许可及历史内部标识保留，详情见 [NOTICE](NOTICE.md) 和 [LICENSE](LICENSE)。产品界面、输入源 ID 和本机数据目录使用 AgentReins。菜单图标是键帽上的 A。上游 Qingjian 的署名保留在 NOTICE。
 
 ### Windows / Android 测试安装包
 

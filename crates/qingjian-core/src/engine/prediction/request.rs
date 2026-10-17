@@ -41,6 +41,6 @@ pub struct PredictionRequest {
     /// 翻译请求的原文（应用里选中的文字）；其他种类为空。
     pub text: String,
 
-    /// 翻译请求的目标语言代码（`en` / `ja`，学习语言）；其他种类为空。
+    /// 翻译请求的目标语言代码（`zh` / `en` / `ja` / `es`）；其他种类为空。
     pub target_language: String,
 }

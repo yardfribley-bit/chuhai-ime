@@ -75,6 +75,33 @@ fn takes_no_part_in_the_pinyin_machinery() {
 }
 
 #[test]
+fn a_follow_up_rises_after_it_is_chosen_twice_in_the_same_context() {
+    let mut engine = wubi().with_learner(Box::new(WordLearner::default()));
+    let mut interpolation = crate::sentence::Interpolation::DEFAULT;
+    interpolation.max_confidence = 0.0;
+    engine.set_interpolation(interpolation);
+    let commit = |engine: &mut Engine, code: &str, text: &str| {
+        engine.set_input(code);
+        let item = engine
+            .query()
+            .unwrap()
+            .candidates
+            .items
+            .into_iter()
+            .find(|candidate| candidate.text == text)
+            .unwrap();
+        engine.commit(&item);
+    };
+    commit(&mut engine, "ga", "开");
+    commit(&mut engine, "gc", "到");
+    commit(&mut engine, "ga", "开");
+    assert_eq!(code_texts(&mut engine, "g")[0], "一");
+    commit(&mut engine, "gc", "到");
+    commit(&mut engine, "ga", "开");
+    assert_eq!(code_texts(&mut engine, "g")[0], "到");
+}
+
+#[test]
 fn a_word_chosen_under_a_code_rises_next_time() {
     let mut engine = wubi().with_learner(Box::new(WordLearner::default()));
     engine.set_input("g");

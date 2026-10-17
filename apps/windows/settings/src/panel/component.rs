@@ -64,6 +64,13 @@ impl Component for Settings {
             Message::LearningLanguage(Some(i)) if i < general::LANGUAGES.len() => {
                 self.save("general", "learning_language", general::LANGUAGES[i].1);
             }
+            Message::TranslationLanguage(Some(i)) if i < general::TRANSLATION_LANGUAGES.len() => {
+                self.save(
+                    "general",
+                    "translation_language",
+                    general::TRANSLATION_LANGUAGES[i].1,
+                );
+            }
             Message::PageSize(Some(value)) => {
                 let size = (value.round() as i64).clamp(1, 9);
                 self.save("general", "page_size", size);
@@ -340,7 +347,7 @@ impl Component for Settings {
     }
 
     fn view(&self, _input: &(), context: &mut ViewContext<Self>) -> View {
-        context.window_title("出海舰设置");
+        context.window_title("AgentReins 设置");
         let item = |tag: &str, label: &str, symbol| {
             KeyedView::new(
                 tag,
@@ -370,7 +377,7 @@ impl Component for Settings {
         ];
         NavigationView::new()
             .pane_display_mode(NavigationViewPaneDisplayMode::Left)
-            .pane_title("出海舰")
+            .pane_title("AgentReins")
             .open_pane_length(220.0)
             .is_pane_open(true)
             .is_pane_toggle_button_visible(false)

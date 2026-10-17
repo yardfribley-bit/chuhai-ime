@@ -55,7 +55,7 @@ FocusOut 的行内预编辑由框架或声明 ClientUnfocusCommit 的客户端�
 
 ## 本地整句模型
 
-Server 启动时按 `[model] enabled`（缺省开）在后台线程加载模型并预热，`find_model` 先找用户目录 `~/.local/share/qingjian/model/`，再找随包的 `resources/data/model/`；Linux 没有配置热加载，改开关要重启服务。
+Server 启动时按 `[model] enabled`（缺省开）在后台线程加载模型并预热，`find_model` 先找用户目录 `~/.local/share/agentreins/model/`，再找随包的 `resources/data/model/`；Linux 没有配置热加载，改开关要重启服务。
 节拍与 Windows Server 的 `dispatch/rescore` 相同：缓冲变化后起 80 ms 防抖，到点把整句路径送去后台打分，每 20 ms 收一次，最长等 2 s；
 结果到了只在用户还看着第一页、没动过高亮时重建候选布局，下一次 `Poll` 回的帧就是新顺序。主循环按 `Router::next_tick` 的绝对到点时间等消息，空闲时一秒一次落盘学习。
 模型在后台接上时用户正在组句，Server 补查一次攒下整句路径再起防抖，这一轮不错过重排。前文用本会话最近上屏的字，首版不读应用光标前文。
@@ -63,9 +63,9 @@ Server 启动时按 `[model] enabled`（缺省开）在后台线程加载模型�
 ## 路径和排错
 
 用户安装与手动启动见 [Linux 用户说明](../user/getting-started/linux.md)。安装只登记实际绝对插件库路径，不修改系统 Fcitx5 搜索规则。
-`QINGJIAN_SOCKET` 可指定绝对 socket 路径；缺省为 `$XDG_RUNTIME_DIR/qingjian.sock`，无 runtime 时用 `/tmp/qingjian-<uid>/qingjian.sock`。
+`QINGJIAN_SOCKET` 可指定绝对 socket 路径；缺省为 `$XDG_RUNTIME_DIR/qingjian.sock`，无 runtime 时用 `/tmp/agentreins-<uid>/qingjian.sock`。
 父目录须归当前用户且不可被其他用户写入；socket 权限为 0600。`QINGJIAN_RESOURCES` 覆盖资源根，`QINGJIAN_DICT` 可指定测试词库。
-默认数据从可执行文件旁 `../share/qingjian/resources` 找，支持源码开发目录回退。
+默认数据从可执行文件旁 `../share/agentreins/resources` 找，支持源码开发目录回退。
 
 未出候选时先确认手动 Server 在运行，再查看 `$XDG_STATE_HOME/qingjian/logs/server.*.log`（缺省 `~/.local/state`）。
 输入日志由 `[general] input_log` 控制；用户配置和学习文件始终保存在 XDG 用户目录，卸载不删除。

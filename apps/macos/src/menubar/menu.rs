@@ -112,7 +112,7 @@ impl InputMenu {
         error.setEnabled(false);
         error.setHidden(true);
         menu.addItem(&error);
-        let about = action_item(mtm, &format!("出海舰 {version}"), None, &target);
+        let about = action_item(mtm, &format!("AgentReins {version}"), None, &target);
         about.setEnabled(false);
         menu.addItem(&about);
 

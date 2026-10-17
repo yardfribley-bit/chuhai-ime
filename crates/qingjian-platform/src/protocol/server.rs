@@ -11,7 +11,7 @@ use crate::config::SwitchKeys;
 /// DLL 跑在每个应用的进程里，拿不到 Server 那份 [`Config`](crate::Config)，但这两个值在**按键到达之前**
 /// 就得知道：单击切换键的判定在 `OnTestKeyUp` 里做，内置英文模式开关决定要不要登记语言栏按钮。
 /// 所以由 Server 读配置（它本来就在盯热加载）经协议下发，DLL 不读文件、不查 mtime——
-/// `%APPDATA%\Qingjian` 对 AppContainer 里的商店应用本来也读不到。
+/// `%APPDATA%\AgentReins` 对 AppContainer 里的商店应用本来也读不到。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct InputSettings {
     /// 中英切换键（`[shortcut] switch_mode`）。

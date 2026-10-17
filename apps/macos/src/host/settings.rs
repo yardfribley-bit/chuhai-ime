@@ -197,6 +197,11 @@ impl Host {
                 self.settings
                     .set_value("general", "learning_language", code);
             }
+            (Setting::TranslationLanguage, SettingValue::Index(index)) => {
+                let code = ["en", "ja", "es"].get(index).copied().unwrap_or("en");
+                self.settings
+                    .set_value("general", "translation_language", code);
+            }
             (Setting::PageSize, SettingValue::Index(index)) => {
                 self.settings
                     .set_value("general", "page_size", index as i64 + 1);

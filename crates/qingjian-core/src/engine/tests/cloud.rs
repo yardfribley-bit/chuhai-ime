@@ -538,8 +538,25 @@ fn translation_requests_carry_the_text_and_target_language() {
     // 外文选区译回中文
     engine.request_translation("I want to eat.").unwrap();
     assert_eq!(sent.lock().unwrap()[1].target_language, "zh");
-    engine.request_english_translation("网络安全测试").unwrap();
-    assert_eq!(sent.lock().unwrap()[2].target_language, "en");
+    engine
+        .request_paragraph_translation("网络安全测试", crate::candidate::Language::Japanese)
+        .unwrap();
+    assert_eq!(sent.lock().unwrap()[2].target_language, "ja");
+    engine
+        .request_paragraph_translation("网络安全测试", crate::candidate::Language::Spanish)
+        .unwrap();
+    assert_eq!(sent.lock().unwrap()[3].target_language, "es");
+    engine
+        .request_paragraph_translation("网络安全测试", crate::candidate::Language::Chinese)
+        .unwrap();
+    assert_eq!(sent.lock().unwrap()[4].target_language, "en");
+    engine
+        .request_paragraph_translation(
+            "We are fixing a vulnerability.",
+            crate::candidate::Language::English,
+        )
+        .unwrap();
+    assert_eq!(sent.lock().unwrap()[5].target_language, "zh");
 }
 
 #[test]
