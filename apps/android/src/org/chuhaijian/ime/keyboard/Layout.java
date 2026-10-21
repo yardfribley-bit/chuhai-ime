@@ -7,6 +7,20 @@ import java.util.List;
 public final class Layout {
     private Layout() {}
 
+    /** 点在键内则取该键，否则取矩形距离最近的键。键列表为空时返回 null。 */
+    public static Key nearest(List<Key> keys, float x, float y) {
+        Key best=null; float bestDistance=Float.MAX_VALUE;
+        if(keys==null) return null;
+        for(Key key:keys) {
+            if(key.contains(x,y)) return key;
+            float dx=x<key.left?key.left-x:x>=key.right?x-key.right:0;
+            float dy=y<key.top?key.top-y:y>=key.bottom?y-key.bottom:0;
+            float distance=dx*dx+dy*dy;
+            if(distance<bestDistance) { bestDistance=distance; best=key; }
+        }
+        return best;
+    }
+
     public static List<Key> create(float width, float height, boolean symbols) {
         List<Key> keys=new ArrayList<>();
         float unit=width/10f, row=height/4f;

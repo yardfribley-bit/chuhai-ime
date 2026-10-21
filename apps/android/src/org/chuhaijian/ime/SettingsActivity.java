@@ -14,6 +14,7 @@ import android.widget.SeekBar;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
+import org.chuhaijian.ime.keyboard.Panel;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -30,16 +31,37 @@ public final class SettingsActivity extends Activity {
         button("选择输入法",() -> ((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showInputMethodPicker());
         android.content.SharedPreferences keyboard=getSharedPreferences("keyboard",MODE_PRIVATE);
         text("键盘设置",22);
-        TextView height=text("按键高度："+keyboard.getInt("key_height",58)+" dp",16);
-        SeekBar size=new SeekBar(this); size.setMax(20); size.setProgress(keyboard.getInt("key_height",58)-50); root.addView(size);
+        int keyHeight=keyboard.getInt("key_height",Panel.DEFAULT_ROW_DP);
+        TextView height=text("按键高度："+keyHeight+" dp",16);
+        SeekBar size=new SeekBar(this); size.setMax(Panel.MAX_ROW_DP-Panel.MIN_ROW_DP); size.setProgress(keyHeight-Panel.MIN_ROW_DP); root.addView(size);
         size.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(SeekBar bar,int progress,boolean user) { height.setText("按键高度："+(50+progress)+" dp"); if(user) keyboard.edit().putInt("key_height",50+progress).apply(); }
+            public void onProgressChanged(SeekBar bar,int progress,boolean user) { height.setText("按键高度："+(Panel.MIN_ROW_DP+progress)+" dp"); if(user) keyboard.edit().putInt("key_height",Panel.MIN_ROW_DP+progress).apply(); }
             public void onStartTrackingTouch(SeekBar bar) {}
             public void onStopTrackingTouch(SeekBar bar) {}
         });
         CheckBox preview=new CheckBox(this); preview.setText("按下字母时显示放大预览"); preview.setChecked(keyboard.getBoolean("key_preview",true)); root.addView(preview);
         preview.setOnCheckedChangeListener((view,checked) -> keyboard.edit().putBoolean("key_preview",checked).apply());
-        text("设置即时保存；返回输入框后生效。点键盘左上角可选择五笔、拼音、英文；123 打开数字符号。",15);
+        CheckBox haptic=new CheckBox(this); haptic.setText("按键震动"); haptic.setChecked(keyboard.getBoolean("haptic",true)); root.addView(haptic);
+        int hapticLevel=keyboard.getInt("haptic_level",30);
+        TextView hapticValue=text("震动强度："+hapticLevel,16);
+        SeekBar hapticBar=new SeekBar(this); hapticBar.setMax(100); hapticBar.setProgress(hapticLevel); root.addView(hapticBar);
+        hapticBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(SeekBar bar,int progress,boolean user) { hapticValue.setText("震动强度："+progress); if(user) keyboard.edit().putInt("haptic_level",progress).apply(); }
+            public void onStartTrackingTouch(SeekBar bar) {}
+            public void onStopTrackingTouch(SeekBar bar) {}
+        });
+        haptic.setOnCheckedChangeListener((view,checked) -> keyboard.edit().putBoolean("haptic",checked).apply());
+        CheckBox sound=new CheckBox(this); sound.setText("按键音"); sound.setChecked(keyboard.getBoolean("key_sound",false)); root.addView(sound);
+        int soundLevel=keyboard.getInt("sound_level",40);
+        TextView soundValue=text("按键音音量："+soundLevel,16);
+        SeekBar soundBar=new SeekBar(this); soundBar.setMax(100); soundBar.setProgress(soundLevel); root.addView(soundBar);
+        soundBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(SeekBar bar,int progress,boolean user) { soundValue.setText("按键音音量："+progress); if(user) keyboard.edit().putInt("sound_level",progress).apply(); }
+            public void onStartTrackingTouch(SeekBar bar) {}
+            public void onStopTrackingTouch(SeekBar bar) {}
+        });
+        sound.setOnCheckedChangeListener((view,checked) -> keyboard.edit().putBoolean("key_sound",checked).apply());
+        text("设置即时保存。按键高度返回输入框后生效，震动和按键音下次按下即生效。强度或音量为 0 时相当于关闭。顶栏可选五笔、拼音、英文，点「译」翻译当前段落，点「收起」隐藏键盘。123 打开数字符号。",15);
         android.content.SharedPreferences config=getSharedPreferences("cloud",MODE_PRIVATE);
         text("整句云翻译",22); text("仅在你主动触发翻译时，发送当前中文段落给你配置的服务。密码框不翻译。接口费用由服务商收取。",15);
         text("译成",16);
