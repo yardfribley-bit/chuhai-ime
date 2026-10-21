@@ -164,10 +164,10 @@ mod tests {
         assert_eq!(
             left,
             [
-                "notes.txt",
                 "agentreins.log.2026-08-29",
                 "agentreins.log.2026-09-04",
-                "agentreins.log.bogus"
+                "agentreins.log.bogus",
+                "notes.txt"
             ]
         );
         let _ = std::fs::remove_dir_all(&dir);
