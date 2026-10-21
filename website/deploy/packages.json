@@ -1,20 +1,20 @@
 [
   {
     "platform": "macos",
-    "filename": "chuhai-ime-0.1.5-build238-macos-x86_64.pkg",
-    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-build238/chuhai-ime-0.1.5-build238-macos-x86_64.pkg",
-    "sha256": "10917a55b4d697d40997b872fbcb090ddeb0ad6f2e25ce9c90b03b5ef89b2d70"
+    "filename": "AgentReins-0.1.5-dev-1b837a6-macos-x86_64.pkg",
+    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/agentreins-0.1.5-dev-1b837a6/AgentReins-0.1.5-dev-1b837a6-macos-x86_64.pkg",
+    "sha256": "6695bef913142f30816bda1a43824bd14bcfa4b8a1e565beea187f3122a7ab58"
   },
   {
     "platform": "windows",
-    "filename": "chuhai-0.1.5-dev-597b2da-windows-x86_64-setup.exe",
-    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/v0.1.5-dev-crossplatform/chuhai-0.1.5-dev-597b2da-windows-x86_64-setup.exe",
-    "sha256": "2d9246d3eed49aa36b3d6e08192bc158b9e82732ebe4df5bce0d585e8e549079"
+    "filename": "AgentReins-0.1.5-dev-1b837a6-windows-x86_64-setup.exe",
+    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/agentreins-0.1.5-dev-1b837a6/AgentReins-0.1.5-dev-1b837a6-windows-x86_64-setup.exe",
+    "sha256": "dd75ee2e5cc70d812110cf5bd71319517988cf0d173fb26df8ef4d52ac4f1d3e"
   },
   {
     "platform": "android",
-    "filename": "chuhai-ime-0.1.2-test-android.apk",
-    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/android-v0.1.2-test/chuhai-ime-0.1.2-test-android.apk",
-    "sha256": "8174ebda3f85f6d369c064287640d834d976a790ceec0c4b4eae95e0d6f63114"
+    "filename": "AgentReins-0.1.2-test.apk",
+    "url": "https://github.com/yardfribley-bit/chuhai-ime/releases/download/agentreins-0.1.5-dev-1b837a6/AgentReins-0.1.2-test.apk",
+    "sha256": "b00437a245acf6a8251d9013e79c4271efec8b79fd726873194f9eba7f1c57ab"
   }
 ]
