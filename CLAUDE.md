@@ -46,6 +46,21 @@ apps/macos/scripts/bundle.sh --install        # mac 壳装到 ~/Library/Input Me
 Windows 本机只 `cargo check --target x86_64-pc-windows-gnu`，真编译与真机测试在 Windows 机器上做（部署方式见 `apps/windows/README.md`）；
 端到端验证 mac 可用 `osascript` 往 TextEdit 发按键再读回文本。
 
+## Cloud Agent
+
+Linux 云环境的工具链是 Rust 1.96（与 CI 一致），`/usr/bin/c++` 指向 g++。Ubuntu 24.04 源里的 Fcitx5 是 5.1.7，低于插件要求的 5.1.8，因此 `/usr/local` 另装了 5.1.19（含键盘静态库，不含 X11、Wayland 和桌面服务进程）。`pkg-config` 与 CMake 会先用这一份。
+
+Linux 上验证 Core 与 Linux 壳：
+
+```bash
+cargo fmt --all --check
+cargo clippy --workspace --exclude qingjian-macos --all-targets --locked -- -D warnings
+cargo test --workspace --exclude qingjian-macos --locked
+cargo run -p qingjian-cli -- --dict assets/sample/dict.tsv nihao
+```
+
+`qingjian-macos` 依赖 IMK，只在 macOS 上编。主线上有两条测试与这套环境无关：`learning_language_off_disables_annotations_in_real_server` 把配置写到 `config/qingjian`，而数据目录名已是 `AgentReins`；`fcitx5_plugin_opens_sessions_with_the_current_protocol` 里插件写协议 7，共享协议是 8。Fcitx 插件里会连上真实 Server 的用例会跟着协议不一致失败。
+
 ## 约定
 
 架构约束、代码组织、版本号、提交信息、文档同步、提交前检查与发版都在 `docs/contributing.md`，随本文件一起载入：
