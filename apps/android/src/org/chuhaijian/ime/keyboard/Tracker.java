@@ -5,7 +5,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 与界面无关的指针跟踪。滑出按下的键时不丢弃，抬起落到最近的键。
+ * 与界面无关的指针跟踪。小幅移动抬起落到最近的键；尚未绑定动作的滑动仍记在按下的键上。
+ * 新指针按下时，更早的指针按按下顺序结算，连打不会按抬起顺序颠倒。
  * 上滑超过键高的 {@link #SWIPE_UP_RATIO}，或水平位移达到阈值且大于垂直位移时，另记为滑动。
  */
 public final class Tracker {
@@ -25,14 +26,27 @@ public final class Tracker {
         this.longPressMs = longPressMs;
     }
 
-    public Stroke down(int id, float x, float y, long time, List<Key> keys) {
+    /**
+     * 按下一指。更早仍按着、且没被长按消耗的指针按按下顺序排在前面，调用方应立刻提交它们；
+     * 最后一项是这一指的 {@link Stroke.Kind#DOWN}。没有键时返回空列表。
+     */
+    public List<Stroke> down(int id, float x, float y, long time, List<Key> keys) {
+        List<Stroke> settled = new ArrayList<Stroke>();
         Key key = Layout.nearest(keys, x, y);
-        if (key == null) return null;
+        if (key == null) return settled;
+        for (int i = 0; i < pointers.size(); i++) {
+            Pointer pointer = pointers.get(i);
+            if (!pointer.alive || pointer.consumed) continue;
+            settled.add(strokeFor(pointer, pointer.x, pointer.y, keys));
+            pointer.consumed = true;
+        }
         Pointer pointer = find(id);
         if (pointer == null) {
             pointer = new Pointer();
-            pointers.add(pointer);
+        } else {
+            pointers.remove(pointer);
         }
+        pointers.add(pointer);
         pointer.id = id;
         pointer.key = key.value;
         pointer.current = key.value;
@@ -44,7 +58,8 @@ public final class Tracker {
         pointer.downTime = time;
         pointer.alive = true;
         pointer.consumed = false;
-        return new Stroke(Stroke.Kind.DOWN, key.value, id, x, y);
+        settled.add(new Stroke(Stroke.Kind.DOWN, key.value, id, x, y));
+        return settled;
     }
 
     public void move(int id, float x, float y, List<Key> keys) {
@@ -81,6 +96,28 @@ public final class Tracker {
         pointer.alive = false;
         pointers.remove(pointer);
         if (pointer.consumed) return null;
+        return strokeFor(pointer, x, y, keys);
+    }
+
+    public void cancel(int id) {
+        Pointer pointer = find(id);
+        if (pointer == null) return;
+        pointer.alive = false;
+        pointers.remove(pointer);
+    }
+
+    public void clear() { pointers.clear(); }
+
+    /**
+     * 长按和按下不提交。点击提交抬起处最近的键；尚未绑定动作的滑动提交最初按下的键。
+     * 滑动的 {@link Stroke#key} 保持按下的那颗键，以后绑定空格移光标等动作时仍认这颗键。
+     */
+    public static String keyToCommit(Stroke stroke) {
+        if (stroke == null || stroke.kind == Stroke.Kind.LONG_PRESS || stroke.kind == Stroke.Kind.DOWN) return null;
+        return stroke.key;
+    }
+
+    private Stroke strokeFor(Pointer pointer, float x, float y, List<Key> keys) {
         float dx = x - pointer.downX;
         float dy = y - pointer.downY;
         Stroke.Kind kind = Stroke.Kind.TAP;
@@ -94,26 +131,7 @@ public final class Tracker {
             kind = dx < 0 ? Stroke.Kind.SWIPE_LEFT : Stroke.Kind.SWIPE_RIGHT;
             key = pointer.key;
         }
-        return new Stroke(kind, key, id, x, y);
-    }
-
-    public void cancel(int id) {
-        Pointer pointer = find(id);
-        if (pointer == null) return;
-        pointer.alive = false;
-        pointers.remove(pointer);
-    }
-
-    public void clear() { pointers.clear(); }
-
-    /**
-     * 长按交给退格连删。点击提交抬起处的键；尚未绑定的上滑和左右滑仍提交抬起处最近的键，避免丢键。
-     */
-    public static String keyToCommit(Stroke stroke, List<Key> keys) {
-        if (stroke == null || stroke.kind == Stroke.Kind.LONG_PRESS || stroke.kind == Stroke.Kind.DOWN) return null;
-        if (stroke.kind == Stroke.Kind.TAP) return stroke.key;
-        Key key = Layout.nearest(keys, stroke.x, stroke.y);
-        return key == null ? stroke.key : key.value;
+        return new Stroke(kind, key, pointer.id, x, y);
     }
 
     private Pointer find(int id) {
