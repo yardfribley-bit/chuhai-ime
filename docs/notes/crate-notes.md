@@ -327,7 +327,7 @@ Mac 中英文输入使用当前 `NSEvent.modifierFlags` 中的 Caps Lock / Shift
 
 ## Android 键盘手感（自绘、反馈、顶栏）
 
-`KeyboardView` 自绘全部按键，不再一键一个 `Button`。`Tracker` 与界面无关：按下记键，抬起用 `Layout.nearest` 落到最近的键；上滑超过键高的 0.3 且垂直位移不小于水平位移时记为上滑，水平位移达到触控容差的 8 倍且大于垂直位移时记为左右滑。上滑出数字符号、空格移光标尚未绑定，这两种滑动抬起仍提交最近的键，避免丢键。长按退格在系统长按时间后每 70ms 删一次，不加速。字母预览复用同一个 `PopupWindow`。每个键通过 `KeyNodes` 暴露为无障碍节点。
+`KeyboardView` 自绘全部按键，不再一键一个 `Button`。`Tracker` 与界面无关：按下记键，小幅移动抬起用 `Layout.nearest` 落到最近的键；上滑超过键高的 0.3 且垂直位移不小于水平位移时记为上滑，水平位移达到触控容差的 8 倍且大于垂直位移时记为左右滑。上滑出数字符号、空格移光标尚未绑定，未绑定的滑动提交按下的键（`Stroke.key` 保持这颗键，绑定动作时不用改落键对象）。新指针按下时，更早仍按着且未被长按消耗的指针按按下顺序结算，真实抬起不再重复提交。长按退格在系统长按时间后每 70ms 删一次，不加速。字母预览复用同一个 `PopupWindow`。每个键通过 `KeyNodes` 暴露为无障碍节点。
 
 按下时 `Feedback` 读 `keyboard` 偏好：`haptic` 默认开、`haptic_level` 默认 30（0 关闭），尊重系统触摸反馈；有振幅控制时映射到 `VibrationEffect`。`key_sound` 默认关、`sound_level` 默认 40，用 `AudioManager.playSoundEffect`。Manifest 增加 `VIBRATE`。
 

@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** 自绘四行全键盘。按下立即反馈，抬起提交最近的键，滑出键外也不丢。 */
+/** 自绘四行全键盘。按下立即反馈；小幅滑动抬起提交最近的键，未绑定的滑动提交按下的键。新的一指按下时先结算更早的键。 */
 public final class KeyboardView extends View {
     private static final int REPEAT_MS = 70;
     private static final int PRESSED = Color.rgb(184, 205, 238);
@@ -189,7 +189,14 @@ public final class KeyboardView extends View {
 
     private void beginPointer(int id, float x, float y) {
         previewEnabled = getContext().getSharedPreferences("keyboard", Context.MODE_PRIVATE).getBoolean("key_preview", true);
-        Stroke down = tracker.down(id, x, y, SystemClock.uptimeMillis(), keys);
+        Stroke down = null;
+        for (Stroke stroke : tracker.down(id, x, y, SystemClock.uptimeMillis(), keys)) {
+            if (stroke.kind == Stroke.Kind.DOWN) down = stroke;
+            else {
+                disarm(stroke.pointerId);
+                applyStroke(stroke);
+            }
+        }
         if (down == null) return;
         feedback.play(this, down.key);
         Runnable task = new Runnable() {
@@ -208,15 +215,24 @@ public final class KeyboardView extends View {
     }
 
     private void finishPointer(int id, float x, float y) {
+        disarm(id);
+        Stroke stroke = tracker.up(id, x, y, SystemClock.uptimeMillis(), keys);
+        refreshPressed();
+        applyStroke(stroke);
+    }
+
+    private void disarm(int id) {
         Runnable task = longPressTasks.remove(id);
         if (task != null) handler.removeCallbacks(task);
         if (repeating == id) {
             repeating = -1;
             handler.removeCallbacks(repeat);
         }
-        Stroke stroke = tracker.up(id, x, y, SystemClock.uptimeMillis(), keys);
-        refreshPressed();
-        String value = Tracker.keyToCommit(stroke, keys);
+    }
+
+    /** 点击和未绑定滑动都在这里上屏。空格移光标等动作以后按 {@link Stroke#kind} 在提交前分流。 */
+    private void applyStroke(Stroke stroke) {
+        String value = Tracker.keyToCommit(stroke);
         if (value != null) commitKey(value);
     }
 
